@@ -20,6 +20,14 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>PhoneEatsFirst uses the camera to take photos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PhoneEatsFirst uses your location for tagging and recommendation.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PhoneEatsFirst uses your microphone for capturing photo.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PhoneEatsFirst saves captured photos to your photo library.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -33,6 +41,8 @@
 	<array>
 		<string>armv7</string>
 	</array>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
