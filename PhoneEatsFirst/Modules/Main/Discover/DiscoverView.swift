@@ -26,6 +26,8 @@ struct DiscoverView: View {
   @State var filterListMode: FilterMode = .popular
 
   @State var searchText: String = ""
+  
+  var user: User
 
   var body: some View {
     VStack {
@@ -77,7 +79,7 @@ struct DiscoverView: View {
 
       // main content view
       PageView(selection: $pickerSelection, indexDisplayMode: .never) {
-        DiscoverListView().tag(ListMode.list).animation(.none)
+        DiscoverListView(user: user).tag(ListMode.list).animation(.none)
         MapView().tag(ListMode.map)
       }
       .ignoresSafeArea(.container, edges: .vertical)
@@ -88,11 +90,11 @@ struct DiscoverView: View {
   }
 }
 
-struct DiscoverView_Previews: PreviewProvider {
-  static var previews: some View {
-    Group {
-      DiscoverView()
-        .environmentObject(DataRepository())
-    }
-  }
-}
+//struct DiscoverView_Previews: PreviewProvider {
+//  static var previews: some View {
+//    Group {
+//      DiscoverView()
+//        .environmentObject(DataRepository())
+//    }
+//  }
+//}

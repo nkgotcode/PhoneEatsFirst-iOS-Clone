@@ -45,7 +45,7 @@ struct CommentView: View {
       } // ForEach
       .padding()
       .sheet(isPresented: $presentingProfileView) {
-        HomeView().accentColor(Color.pink)
+//        HomeView().accentColor(Color.pink)
       }
     } // ScrollView
     .navigationTitle("Comments")

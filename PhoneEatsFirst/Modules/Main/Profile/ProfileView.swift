@@ -57,6 +57,14 @@ struct ProfileView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 15)
+        
+        // username
+        VStack(alignment: .leading) {
+          Text("@" + user.username).font(Font.system(size: 14)).foregroundColor(Color.gray)
+          if let bio = user.bio {
+            Text(bio)
+          }
+        }.padding(.leading, 15)
 
         // bio
         VStack(alignment: .leading) {

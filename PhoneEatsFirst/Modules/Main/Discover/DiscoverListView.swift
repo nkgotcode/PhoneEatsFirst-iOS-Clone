@@ -10,10 +10,13 @@ import SDWebImageSwiftUI
 import SwiftUI
 
 struct DiscoverListView: View {
+  @Environment(\.presentationMode) private var presentationMode
   @Injected private var repository: DataRepository
 
   @State private var chosenBusiness: Business? = nil
   @State private var presentingBusinessView: Bool = false
+  
+  var user: User
 
   var body: some View {
     ScrollView {
@@ -77,10 +80,11 @@ struct DiscoverListView: View {
 
                     Button {
                       // bookmark
-                      repository.addBookmark(business: business)
+//                      repository.addUserBookmark(business: business)
+                      
                       print("user bookmarked \(String(describing: business.id))")
                     } label: {
-                      Image(systemName: "bookmark")
+//                      Image(systemName: "bookmark")
 //                      Image(systemName: repository.isBookmarked(business: business) ? "bookmark.fill" : "bookmark")
                     }
                   }
@@ -105,15 +109,38 @@ struct DiscoverListView: View {
           BusinessView(business: business).accentColor(.pink)
         }
       } // LazyVGrid
+      .toolbar {
+        Button {
+          presentationMode.wrappedValue.dismiss()
+        } label: {
+          Text("Done").bold()
+        }
+      }
     } // ScrollView
   }
 }
 
-struct DiscoverListView_Previews: PreviewProvider {
-  static var previews: some View {
-    Group {
-      DiscoverListView()
-        .environmentObject(DataRepository())
+struct BookmarkButtonView: UIViewRepresentable {
+  @Injected private var repository: DataRepository
+  @Binding var isBookmarked: Bool
+  var user: User
+  
+  func makeUIView(context: Context) -> some UIView {
+    UIButton()
+  }
+  
+  func updateUIView(_ uiView: UIViewType, context: Context) {
+    if isBookmarked {
+//      uiView.
     }
   }
 }
+
+//struct DiscoverListView_Previews: PreviewProvider {
+//  static var previews: some View {
+//    Group {
+//      DiscoverListView()
+//        .environmentObject(DataRepository())
+//    }
+//  }
+//}

@@ -19,10 +19,10 @@ struct User: Codable, Identifiable {
   var gender: String?
   var country: String?
   var phone: String?
-  var following: [User]
-  var followers: [User]
+  var following: [String]
+  var followers: [String]
   var userReviewsID: [String]
-  var bookmarks: [Business]
+  var bookmarks: [String]
   var favoriteFoods: [Food]
   var profileImageUrl: String?
   @ServerTimestamp var creationDate: Timestamp?

@@ -93,6 +93,18 @@ final class DataRepository: ObservableObject {
   func getReview(id: String) -> Review? {
     reviews.first(where: { $0.id == id })
   }
+  
+  func getDisplayTimestamp(creationDate: Timestamp) -> String {
+    let postDate = Date(timeIntervalSince1970: TimeInterval(creationDate.seconds))
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    let ret = formatter.localizedString(for: postDate, relativeTo: Date())
+    return ret
+  }
+  
+  func getTruncatedRatings(ratings: Double) -> Double {
+    ratings.truncate(places: 2)
+  }
 
   func login(email: String, password: String, completion: ((Bool) -> Void)? = nil) {
     auth.signIn(withEmail: email, password: password) { [weak self] result, error in
@@ -148,15 +160,6 @@ final class DataRepository: ObservableObject {
         print("Error uploading image")
         return
       }
-      
-//      storageRef.child("\(uid)/ori/\(postId).jpg").downloadURL(completion: { (url, error) in
-//        if error != nil {
-//          print(error?.localizedDescription)
-//        }
-//        print("URL downloaded")
-//        print(url?.absoluteString)
-//        picURL = url
-//      })
     }
     
     uploadTask.observe(.success) { snapshot in
@@ -185,14 +188,6 @@ final class DataRepository: ObservableObject {
       userReviewsID?.append(postId)
       _ = self.firestore.collection(userPath).document(uid).updateData([
         "userReviewsID": userReviewsID])
-//    }
-//    { err in
-//      if err != nil {
-//        print("Error updating user review ID array")
-//      } else {
-//        print("Document successfully updated")
-//      }
-//    }
   }
 
   func register(
@@ -327,16 +322,18 @@ final class DataRepository: ObservableObject {
     _ = firestore.collection(reviewPath).addDocument(from: review)
   }
 
-  func addBookmark(business: Business) {
-    firestore.collection(userPath).document(user!.id).updateData(["bookmarks" : FieldValue.arrayUnion([business])])
+  func addUserBookmark(business: Business) {
+    var bookmarks = user?.bookmarks
+    bookmarks?.append(business.id!)
+    firestore.collection(userPath).document(user!.id).updateData(["bookmarks" : FieldValue.arrayUnion([business.id!])])
   }
 
-  func deleteBookmark(business: Business) {
-    firestore.collection(userPath).document(user!.id).updateData(["bookmarks" : FieldValue.arrayRemove([business])])
+  func deleteUserBookmark(business: Business) {
+    firestore.collection(userPath).document(user!.id).updateData(["bookmarks" : FieldValue.arrayRemove([business.id!])])
   }
 
   func isBookmarked(business: Business) -> Bool {
-    user!.bookmarks.contains { $0.id! == business.id! }
+    user!.bookmarks.contains { $0 == business.id! }
   }
 
   func mockDb() {
@@ -445,5 +442,13 @@ final class DataRepository: ObservableObject {
     addBusiness(business: b3)
     addBusiness(business: b4)
     addBusiness(business: b5)
+  }
+}
+
+extension Double
+{
+  func truncate(places : Int)-> Double
+  {
+      return Double(floor(pow(10.0, Double(places)) * self)/pow(10.0, Double(places)))
   }
 }

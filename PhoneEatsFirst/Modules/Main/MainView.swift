@@ -27,17 +27,28 @@ class MainViewController: UITabBarController {
       action: #selector(presentNotificationView)
     )
 
-    let homeViewController = UIHostingController(rootView: HomeView())
-    homeViewController.title = "Home"
-    homeViewController.navigationItem.leftBarButtonItem = addFriendButtonItem
-    homeViewController.navigationItem.rightBarButtonItem = notificationButtonItem
-    homeViewController.tabBarItem = UITabBarItem(
+//    let homeViewController = UIHostingController(rootView: HomeView())
+//    homeViewController.title = "Home"
+//    homeViewController.navigationItem.leftBarButtonItem = addFriendButtonItem
+//    homeViewController.navigationItem.rightBarButtonItem = notificationButtonItem
+//    homeViewController.tabBarItem = UITabBarItem(
+//      title: "Home",
+//      image: UIImage(systemName: "house.fill"),
+//      tag: 0
+//    )
+    
+    let homeVC = HomeViewController()
+    homeVC.user = repository.user
+    homeVC.title = "Home"
+    homeVC.navigationItem.leftBarButtonItem = addFriendButtonItem
+    homeVC.navigationItem.rightBarButtonItem = notificationButtonItem
+    homeVC.tabBarItem = UITabBarItem(
       title: "Home",
       image: UIImage(systemName: "house.fill"),
       tag: 0
     )
 
-    let discoverViewController = UIHostingController(rootView: DiscoverView())
+    let discoverViewController = UIHostingController(rootView: DiscoverView(user: repository.user!))
     discoverViewController.title = "Discover"
     discoverViewController.navigationItem.leftBarButtonItem = addFriendButtonItem
     discoverViewController.navigationItem.rightBarButtonItem = notificationButtonItem
@@ -54,7 +65,7 @@ class MainViewController: UITabBarController {
       tag: 2
     )
 
-    let bookmarkViewController = UIHostingController(rootView: BookmarkView())
+    let bookmarkViewController = UIHostingController(rootView: BookmarkView(user: repository.user!))
     bookmarkViewController.title = "Bookmark"
     bookmarkViewController.navigationItem.leftBarButtonItem = addFriendButtonItem
     bookmarkViewController.navigationItem.rightBarButtonItem = notificationButtonItem
@@ -76,7 +87,7 @@ class MainViewController: UITabBarController {
     )
 
     viewControllers = [
-      UINavigationController(rootViewController: homeViewController),
+      UINavigationController(rootViewController: homeVC),
       UINavigationController(rootViewController: discoverViewController),
       UINavigationController(rootViewController: cameraViewController),
       UINavigationController(rootViewController: bookmarkViewController),
@@ -109,66 +120,67 @@ struct MainView: UIViewControllerRepresentable {
 }
 
 /* SwiftUI */
-enum NavigationItem: Int {
-  case home, discover, post, bookmark, profile
-}
-
-struct MainViewLegacy: View {
-  @State private var uiTabBarController: UITabBarController?
-
-  @State private var presentingAddFriendView: Bool = false
-  @State private var presentingNotificationView: Bool = false
-
-  @State private var previousSelection: NavigationItem = .discover
-  @State private var selection: NavigationItem = .discover
-
-  var body: some View {
-    NavigationView {
-      TabView(selection: $selection) {
-        HomeView()
-          .tabItem {
-            Label("Home", systemImage: "house.fill")
-          }
-          .navigationTitle("Home")
-          .tag(NavigationItem.home)
-
-        DiscoverView()
-          .tabItem {
-            Label("Discover", systemImage: "tag.fill")
-          }
-          .navigationTitle("Discover")
-          .tag(NavigationItem.discover)
-
-//        PostView()
+//enum NavigationItem: Int {
+//  case home, discover, post, bookmark, profile
+//}
+//
+//struct MainViewLegacy: View {
+//  @Injected private var repository: DataRepository
+//  @State private var uiTabBarController: UITabBarController?
+//
+//  @State private var presentingAddFriendView: Bool = false
+//  @State private var presentingNotificationView: Bool = false
+//
+//  @State private var previousSelection: NavigationItem = .discover
+//  @State private var selection: NavigationItem = .discover
+//
+//  var body: some View {
+//    NavigationView {
+//      TabView(selection: $selection) {
+//        HomeView()
 //          .tabItem {
-//            Label("Post", systemImage: "plus.diamond.fill")
+//            Label("Home", systemImage: "house.fill")
 //          }
-//          .navigationTitle("Post")
-//          .tag(NavigationItem.post)
-
-        BookmarkView()
-          .tabItem {
-            Label("Bookmark", systemImage: "bookmark.fill")
-          }
-          .navigationTitle("Bookmark")
-          .tag(NavigationItem.bookmark)
-
-//        ProfileView()
+//          .navigationTitle("Home")
+//          .tag(NavigationItem.home)
+//
+//        DiscoverView()
 //          .tabItem {
-//            Label("Profile", systemImage: "person.fill")
+//            Label("Discover", systemImage: "tag.fill")
 //          }
-//          .navigationTitle("Profile")
-//          .tag(NavigationItem.profile)
-      }
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarContentView(presentingAddFriendView: $presentingAddFriendView,
-                           presentingNotificationView: $presentingNotificationView)
-      }
-    }
-    .navigationViewStyle(.stack)
-  }
-}
+//          .navigationTitle("Discover")
+//          .tag(NavigationItem.discover)
+//
+////        PostView()
+////          .tabItem {
+////            Label("Post", systemImage: "plus.diamond.fill")
+////          }
+////          .navigationTitle("Post")
+////          .tag(NavigationItem.post)
+//
+//        BookmarkView(user: repository.user!)
+//          .tabItem {
+//            Label("Bookmark", systemImage: "bookmark.fill")
+//          }
+//          .navigationTitle("Bookmark")
+//          .tag(NavigationItem.bookmark)
+//
+////        ProfileView()
+////          .tabItem {
+////            Label("Profile", systemImage: "person.fill")
+////          }
+////          .navigationTitle("Profile")
+////          .tag(NavigationItem.profile)
+//      }
+//      .navigationBarTitleDisplayMode(.inline)
+//      .toolbar {
+//        ToolbarContentView(presentingAddFriendView: $presentingAddFriendView,
+//                           presentingNotificationView: $presentingNotificationView)
+//      }
+//    }
+//    .navigationViewStyle(.stack)
+//  }
+//}
 
 struct MainView_Previews: PreviewProvider {
   static var previews: some View {

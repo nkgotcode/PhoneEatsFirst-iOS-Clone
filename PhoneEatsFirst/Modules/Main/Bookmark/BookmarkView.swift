@@ -11,6 +11,7 @@ import SwiftUI
 
 struct BookmarkView: View {
   @InjectedObject private var repository: DataRepository
+  let user: User
 
   @State var presentingBusinessView: Bool = false
   @State var bookmarked: Bool = false
@@ -18,13 +19,14 @@ struct BookmarkView: View {
   var body: some View {
     ScrollView {
       // TODO: user should not be nil else show nothing?
-      ForEach(repository.user!.bookmarks) { business in
+      ForEach(user.bookmarks.reversed(), id: \.self) { businessID in
+        let business = repository.getBusiness(id: businessID)
         VStack {
           // each bookmark is a button
           Button {
             presentingBusinessView = true
           } label: {
-            if let imageUrl = business.imageUrl {
+            if let imageUrl = business?.imageUrl {
               WebImage(url: URL(string: imageUrl)!)
                 .resizable()
                 .placeholder(Image("placeholder"))
@@ -40,9 +42,9 @@ struct BookmarkView: View {
                 .cornerRadius(4)
             }
 
-            Text(business.name)
+            Text(business!.name)
 
-            if let stars = business.stars {
+            if let stars = business?.stars {
               Label(String(format: "%d", stars), systemImage: "star.fill")
                 .font(.footnote)
                 .foregroundColor(Color(.systemPink))
@@ -50,7 +52,7 @@ struct BookmarkView: View {
 
             Spacer()
 
-            if let price = business.price {
+            if let price = business?.price {
               Text(String(repeating: "$", count: price))
                 .font(.footnote)
             }
@@ -62,13 +64,13 @@ struct BookmarkView: View {
             Button {
               bookmarked.toggle()
             } label: {
-              Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
+              Image(systemName: repository.isBookmarked(business: business!) ? "bookmark.fill" : "bookmark")
                 .font(.title2)
                 .accentColor(Color(.systemPink))
             }
           }
           .sheet(isPresented: $presentingBusinessView) {
-            BusinessView(business: business).accentColor(.pink)
+            BusinessView(business: business!).accentColor(.pink)
           }
 
           Divider()

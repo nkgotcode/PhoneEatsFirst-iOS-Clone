@@ -9,6 +9,7 @@ import SwiftUI
 import Resolver
 import FirebaseStorage
 import SDWebImageSwiftUI
+import Foundation
 
 struct ReviewView: View {
   let review: Review
@@ -24,8 +25,10 @@ struct ReviewView: View {
   var body: some View {
     let user = repository.getUser(id: review.userId)
     let business = repository.getBusiness(id: review.businessId)
+    let displayTime = repository.getDisplayTimestamp(creationDate: review.creationDate!)
     
-    ScrollView {
+//    ScrollView {
+    NavigationView {
       VStack(alignment: .leading, spacing: 0) {
         HStack {
           Button {
@@ -80,8 +83,8 @@ struct ReviewView: View {
             
           Spacer()
           if let stars = business?.stars {
-
-            Label(String(format: "%f", stars.truncate(places: 2)), systemImage: "star.fill")
+            let tmp = repository.getTruncatedRatings(ratings: stars)
+            Label(String(format: "%f", stars), systemImage: "star.fill")
               .font(.footnote)
               .foregroundColor(Color(.systemPink))
           }
@@ -151,48 +154,23 @@ struct ReviewView: View {
         }
           
         // review's timestamp
-//        let timestamp = Date(timeIntervalSince1970: review.creationDate?.seconds)
-//        let now = Date().offsetFrom(date: timestamp)
-        
-//        Text(now)
-        Text("5 days ago")
+        Text(displayTime)
           .font(.caption2.weight(.light))
           .padding(.vertical, 4)
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 8)
-    } // ScrollView
-    .navigationTitle("Review")
+//    } // ScrollView
+      .navigationTitle("Review")
     .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      Button {
+        presentationMode.wrappedValue.dismiss()
+      } label: {
+        Text("Done").bold()
+      }
+    }
     .accentColor(Color.pink)
   }
-}
-
-extension Double
-{
-  func truncate(places : Int)-> Double
-  {
-      return Double(floor(pow(10.0, Double(places)) * self)/pow(10.0, Double(places)))
   }
-}
-
-extension Date {
-
-  func offsetFrom(date: Date) -> String {
-
-      let dayHourMinuteSecond: Set<Calendar.Component> = [.day, .hour, .minute, .second]
-      let difference = NSCalendar.current.dateComponents(dayHourMinuteSecond, from: date, to: self)
-
-      let seconds = "\(difference.second ?? 0)s"
-      let minutes = "\(difference.minute ?? 0)m" + " " + seconds
-      let hours = "\(difference.hour ?? 0)h" + " " + minutes
-      let days = "\(difference.day ?? 0)d" + " " + hours
-
-      if let day = difference.day, day          > 0 { return days }
-      if let hour = difference.hour, hour       > 0 { return hours }
-      if let minute = difference.minute, minute > 0 { return minutes }
-      if let second = difference.second, second > 0 { return seconds }
-      return ""
-  }
-
 }
