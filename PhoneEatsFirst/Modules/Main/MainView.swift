@@ -76,11 +76,22 @@ class MainViewController: UITabBarController {
     )
 
     // TODO: force unwrap
-    let profileViewController = UIHostingController(rootView: ProfileView(user: repository.user!))
-    profileViewController.title = "Profile"
-    profileViewController.navigationItem.leftBarButtonItem = addFriendButtonItem
-    profileViewController.navigationItem.rightBarButtonItem = notificationButtonItem
-    profileViewController.tabBarItem = UITabBarItem(
+//    let profileViewController = UIHostingController(rootView: ProfileView(user: repository.user!))
+//    profileViewController.title = "Profile"
+//    profileViewController.navigationItem.leftBarButtonItem = addFriendButtonItem
+//    profileViewController.navigationItem.rightBarButtonItem = notificationButtonItem
+//    profileViewController.tabBarItem = UITabBarItem(
+//      title: "Profile",
+//      image: UIImage(systemName: "person.fill"),
+//      tag: 4
+//    )
+    
+    let profileVC = ProfileViewController()
+    profileVC.user = repository.user!
+    profileVC.title = "Profile"
+    profileVC.navigationItem.leftBarButtonItem = addFriendButtonItem
+    profileVC.navigationItem.rightBarButtonItem = notificationButtonItem
+    profileVC.tabBarItem = UITabBarItem(
       title: "Profile",
       image: UIImage(systemName: "person.fill"),
       tag: 4
@@ -91,7 +102,7 @@ class MainViewController: UITabBarController {
       UINavigationController(rootViewController: discoverViewController),
       UINavigationController(rootViewController: cameraViewController),
       UINavigationController(rootViewController: bookmarkViewController),
-      UINavigationController(rootViewController: profileViewController),
+      UINavigationController(rootViewController: profileVC),
     ]
     
     self.tabBar.isTranslucent = false

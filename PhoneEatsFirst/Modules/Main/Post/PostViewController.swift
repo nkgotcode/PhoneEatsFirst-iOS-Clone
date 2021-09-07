@@ -31,7 +31,8 @@ class PostViewController: UIViewController, UITextViewDelegate, UISearchBarDeleg
   var atmosphereStars: CosmosView!
   var valueStars: CosmosView!
   
-  var tags: [ReviewTag] = []
+  var tags: [String]!
+  var tagObjects: [ReviewTag]!
   var textView: UITextView!
 
   override func viewDidLoad() {
@@ -240,7 +241,7 @@ class PostViewController: UIViewController, UITextViewDelegate, UISearchBarDeleg
     if textView.text == "Additional comment goes here.." {
       textView.text = nil
     }
-    repository.uploadPost(image: image, description: nil, businessId: taggedBusinessID!, foodRating: foodStars.rating, serviceRating: serviceStars.rating, atmosphereRating: atmosphereStars.rating, valueRating: valueStars.rating, tags: tags, additionalComment: textView.text)
+    repository.uploadPost(image: image, description: nil, businessId: taggedBusinessID!, foodRating: foodStars.rating, serviceRating: serviceStars.rating, atmosphereRating: atmosphereStars.rating, valueRating: valueStars.rating, tags: tags, tagObjects: tagObjects, additionalComment: textView.text)
     
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
       // posting done

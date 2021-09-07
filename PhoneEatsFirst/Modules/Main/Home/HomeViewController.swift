@@ -26,18 +26,23 @@ class HomeViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    
-    let layout: CustomCollectionViewFlowLayout = CustomCollectionViewFlowLayout(display: .list, containerWidth: view.bounds.size.width)
-    layout.sectionInset = UIEdgeInsets(top: 16, left: 8, bottom: 0, right: 8)
-    layout.itemSize = CGSize(width: 120, height: 120)
-    
-    collectionView = UICollectionView(frame: view.frame, collectionViewLayout: layout)
-    collectionView?.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
-    collectionView?.delegate = self
-    collectionView?.dataSource = self
-    view.addSubview(collectionView!)
-    
     self.reviewID = user.userReviewsID
+    
+    if (reviewID!.count <= 0) {
+      return
+    }
+    else {
+      let layout: CustomCollectionViewFlowLayout = CustomCollectionViewFlowLayout(display: .list, containerWidth: view.bounds.size.width)
+      layout.sectionInset = UIEdgeInsets(top: 16, left: 8, bottom: 0, right: 8)
+      layout.itemSize = CGSize(width: 120, height: 120)
+      
+      collectionView = UICollectionView(frame: view.frame, collectionViewLayout: layout)
+      collectionView?.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
+      collectionView?.delegate = self
+      collectionView?.dataSource = self
+      view.addSubview(collectionView!)
+    }
+    
   }
   
   override func viewWillLayoutSubviews() {
@@ -87,7 +92,7 @@ extension HomeViewController: UICollectionViewDataSource {
         print("error downloading image: \(error.localizedDescription)")
       }
       else {
-        print("successfully downloaded: \(url)")
+        print("successfully downloaded: \(String(describing: url))")
       }
     })
     
@@ -107,16 +112,14 @@ extension HomeViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     let reviewID = reviewDict[indexPath.row]!
     let review = repository.getReview(id: reviewID)
-    let reviewVC = UIHostingController(rootView: ReviewView(review: review!))
+    let tags = repository.getTagObjects(reviewID: reviewID)
+    let reviewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tags, dismissAction: {self.dismiss( animated: true, completion: nil )}))
     reviewVC.modalPresentationStyle = .pageSheet
 //    reviewVC.navigationItem.hidesBackButton = false
 //    reviewVC.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(popView))
     navigationController?.present(reviewVC, animated: true, completion: nil)
   }
   
-//  @objc func popView() {
-//    self.dismiss(animated: true, completion: nil)
-//  }
 }
 
 extension CollectionDisplay: Equatable {

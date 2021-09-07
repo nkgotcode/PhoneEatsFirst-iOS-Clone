@@ -6,10 +6,14 @@
 //
 
 import SwiftUI
+import Resolver
 
 struct CommentView: View {
+  @Injected private var repository: DataRepository
   @State private var presentingProfileView: Bool = false
-
+  var review: Review!
+  var commentDict = [Int:String]()
+  
   var body: some View {
     ScrollView {
       ForEach(1 ..< 10) { _ in
@@ -46,6 +50,8 @@ struct CommentView: View {
       .padding()
       .sheet(isPresented: $presentingProfileView) {
 //        HomeView().accentColor(Color.pink)
+//        let user = repository.getUser(id: )
+//        ProfileView(user: <#T##User#>)
       }
     } // ScrollView
     .navigationTitle("Comments")

@@ -28,15 +28,10 @@ struct Review: Codable, Identifiable {
   var atmosphereRating: Double
   var valueRating: Double
   var rating: Double // based on ratings
-  var tags: [ReviewTag]
+  var tags: [String]
+  var comments: [String]
+  var likes: [String]
   var edited: Bool
   var additionalComment: String?
   @ServerTimestamp var creationDate: Timestamp?
-}
-
-struct ReviewTag: Codable, Identifiable {
-  @DocumentID var id: String?
-  var x: Double
-  var y: Double
-  var description: String
 }

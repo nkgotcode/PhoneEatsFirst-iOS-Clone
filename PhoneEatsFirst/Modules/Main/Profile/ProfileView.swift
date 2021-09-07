@@ -117,15 +117,16 @@ struct ProfileView: View {
         }
 
         // main review view
-        ForEach(user.userReviewsID.reversed(), id: \.self) { reviewID in
-          if reviewID == nil {
-          
-          } else {
-            let review = repository.getReview(id: reviewID)
-            ReviewView(review: review!)
-          }
-        }
-
+//        VStack (alignment: .leading){
+//          ForEach(user.userReviewsID.reversed(), id: \.self) { reviewID in
+//            if reviewID == nil {
+//              Text("")
+//            } else {
+//              let review = repository.getReview(id: reviewID)
+//              ReviewView(review: review!)
+//            }
+//          }
+//        }
       }
 //      .padding()
       .padding(.vertical)

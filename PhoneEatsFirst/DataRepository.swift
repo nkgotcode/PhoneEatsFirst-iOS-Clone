@@ -28,18 +28,20 @@ final class DataRepository: ObservableObject {
   let logger = Logger(subsystem: "com.itsnk.PhoneEatsFirst", category: "Repository")
 
   private let auth = Auth.auth()
-  private let firestore = Firestore.firestore()
+  let firestore = Firestore.firestore()
   let storage = Storage.storage()
 
 //  let storageRef = storage.reference()
 //  let postImageRef = storageRef.child("postImages")
 //  let profileImageRef = storageRef.child("profileImages")
 
-  private let businessPath = "businesses"
-  private let cuisinePath = "cuisines"
-  private let foodPath = "foods"
-  private let reviewPath = "reviews"
-  private let userPath = "users"
+  let businessPath = "businesses"
+  let cuisinePath = "cuisines"
+  let foodPath = "foods"
+  let reviewPath = "reviews"
+  let userPath = "users"
+  let reviewTagPath = "reviewTags"
+  let commentPath = "comment"
 
   private var authHandle: AuthStateDidChangeListenerHandle!
 
@@ -102,6 +104,40 @@ final class DataRepository: ObservableObject {
     return ret
   }
   
+  func getTagObjects(reviewID: String) -> [ReviewTag] {
+    var tagObjects : [ReviewTag] = []
+    let review = getReview(id: reviewID)
+    let tagIDs = review?.tags
+    firestore.collection(reviewPath).document(reviewID).collection(reviewTagPath).getDocuments(completion: {
+      querrySnapshot, err in
+      if let err = err {
+        print("Error getting documents: \(err)")
+      } else {
+        // for loop getting each review tag
+        for doc in querrySnapshot!.documents {
+          
+          let data = doc.data()
+          var x: Double = 0.0
+          var y: Double = 0.0
+          var description: String?
+          // getting fields of review document
+          for (n,d) in data.enumerated() {
+            switch(d.key) {
+            case "x": x = d.value as! Double
+            case "y": y = d.value as! Double
+            case "description": description = d.value as? String
+            default: return
+            }
+            // create tag object and append to return array
+            let tag = ReviewTag(id: doc.documentID, x: x, y: y, description: description!)
+            tagObjects.append(tag)
+          }
+        }
+      }
+    })
+    return tagObjects
+  }
+  
   func getTruncatedRatings(ratings: Double) -> Double {
     ratings.truncate(places: 2)
   }
@@ -143,7 +179,7 @@ final class DataRepository: ObservableObject {
     return img
   }
 
-  func uploadPost(image: UIImage, description: String?, businessId: String, foodRating: Double, serviceRating: Double, atmosphereRating: Double, valueRating: Double, tags: [ReviewTag], additionalComment: String?) {
+  func uploadPost(image: UIImage, description: String?, businessId: String, foodRating: Double, serviceRating: Double, atmosphereRating: Double, valueRating: Double, tags: [String], tagObjects: [ReviewTag], additionalComment: String?) {
     var picURL: URL?
     let storageRef = storage.reference()
     let postId = firestore.collection(reviewPath).document().documentID
@@ -155,6 +191,7 @@ final class DataRepository: ObservableObject {
     let metadata = StorageMetadata()
     metadata.contentType = "image/jpeg"
     
+    // upload image to storage
     let uploadTask = storageRef.child("\(uid)/ori/\(postId).jpg").putData(resizedImage.pngData()!, metadata: metadata) { fullmetadata, err in
       if err != nil {
         print("Error uploading image")
@@ -162,6 +199,7 @@ final class DataRepository: ObservableObject {
       }
     }
     
+    // get url after done uploading
     uploadTask.observe(.success) { snapshot in
       snapshot.reference.downloadURL { url, error in
         if error != nil {
@@ -179,15 +217,26 @@ final class DataRepository: ObservableObject {
       let url = ""
       let totalRatings = (foodRating + serviceRating + atmosphereRating + valueRating) / 4
       
+      // uploading the review object to firestore
       let review = Review(
-        id: postId, description: description, userId: uid, businessId: businessId, imageUrl: url, foodRating: foodRating, serviceRating: serviceRating, atmosphereRating: atmosphereRating, valueRating: valueRating, rating: totalRatings, tags: tags, edited: false, additionalComment: additionalComment, creationDate: nil)
+        id: postId, description: description, userId: uid, businessId: businessId, imageUrl: url, foodRating: foodRating, serviceRating: serviceRating, atmosphereRating: atmosphereRating, valueRating: valueRating, rating: totalRatings, tags: tags, comments: [], likes: [], edited: false, additionalComment: additionalComment, creationDate: nil)
       
       _ = self.firestore.collection(self.reviewPath).document(postId).setData(from: review)
 
+      // append reviewID to user object
       var userReviewsID = self.user?.userReviewsID
       userReviewsID?.append(postId)
-      _ = self.firestore.collection(userPath).document(uid).updateData([
-        "userReviewsID": userReviewsID])
+      self.firestore.collection(userPath).document(uid).updateData([
+        "userReviewsID": userReviewsID!])
+    
+      // uploading tag objects for the image to firestore
+      if tagObjects.count <= 0 {
+        _ = self.firestore.collection(self.reviewPath).document(postId).collection(self.reviewTagPath)
+      } else {
+        for tag in tagObjects {
+          _ = self.firestore.collection(self.reviewPath).document(postId).collection(self.reviewTagPath).document(tag.id!).setData(from: tag)
+        }
+      }
   }
 
   func register(
@@ -231,7 +280,7 @@ final class DataRepository: ObservableObject {
         userReviewsID: [],
         bookmarks: [],
         favoriteFoods: [],
-        profileImageUrl: nil,
+        profileImageUrl: "",
         creationDate: nil,
         lastLoginDate: nil
       )

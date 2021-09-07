@@ -9,11 +9,13 @@ import Foundation
 import UIKit
 import CropViewController
 import IQKeyboardManagerSwift
+import Resolver
 
 class TagViewController: UIViewController, CropViewControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextViewDelegate, ResultTableControllerDelegate {
 
+    @Injected private var repository: DataRepository
+  
     private let imageView = UIImageView()
-      
     var image: UIImage?
     private var croppingStyle = CropViewCroppingStyle.default
 
@@ -25,7 +27,9 @@ class TagViewController: UIViewController, CropViewControllerDelegate, UIImagePi
     
     private var croppedRect = CGRect.zero
     private var croppedAngle = 0
-    var tags: [ReviewTag] = []
+    var tags: [String] = []
+    var tagObjects: [ReviewTag] = []
+  
     private var isTagging : Bool = true
     
     @IBOutlet weak var commentText: UITextView!
@@ -135,6 +139,7 @@ class TagViewController: UIViewController, CropViewControllerDelegate, UIImagePi
       postVC.image = image
       postVC.taggedBusinessID = taggedBusinessID
       postVC.tags = tags
+      postVC.tagObjects = tagObjects
       self.navigationController?.pushViewController(postVC, animated: true)
     }
     
@@ -181,8 +186,10 @@ class TagViewController: UIViewController, CropViewControllerDelegate, UIImagePi
         
         commentTag(sender: button)
         
-        let tag = ReviewTag(x: touchPoint.x, y: touchPoint.y, description: "")
-        tags.append(tag)
+        let tagID = repository.firestore.collection(repository.reviewTagPath).document().documentID
+        let tag = ReviewTag(id: tagID, x: touchPoint.x, y: touchPoint.y, description: "")
+        tags.append(tagID)
+        tagObjects.append(tag)
         gestureRecognizer.view?.addSubview(button)
       }
     }

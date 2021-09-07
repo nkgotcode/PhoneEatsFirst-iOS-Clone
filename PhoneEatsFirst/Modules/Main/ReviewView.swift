@@ -13,8 +13,9 @@ import Foundation
 
 struct ReviewView: View {
   let review: Review
+  let tags: [ReviewTag]
 
-  @Environment(\.presentationMode) private var presentationMode
+  var dismissAction: (() -> Void)
   
   @Injected private var repository: DataRepository
   
@@ -105,14 +106,16 @@ struct ReviewView: View {
           .padding(.horizontal, 8)
           
         // review image
-        WebImage(url: URL(string: review.imageUrl))
-          .resizable()
-          .aspectRatio(contentMode: .fit)
-          .cornerRadius(20.0)
-          .padding(.vertical, 8)
-          .overlay(pinImage, alignment: .bottomLeading)
-          .padding(.horizontal, -8)
+        ZStack {
+          WebImage(url: URL(string: review.imageUrl))
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .cornerRadius(20.0)
+            .padding(.vertical, 8)
+            .overlay(pinImage, alignment: .bottomLeading)
+            .padding(.horizontal, -8)
           
+        }
         // interactions bar
         HStack(spacing: 12) {
           // like button
@@ -126,7 +129,7 @@ struct ReviewView: View {
           
           // comment button
           NavigationLink {
-            CommentView()
+            CommentView(review: review)
           } label: {
             Image(systemName: "bubble.right")
               .font(.title2)
@@ -164,11 +167,9 @@ struct ReviewView: View {
       .navigationTitle("Review")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
-      Button {
-        presentationMode.wrappedValue.dismiss()
-      } label: {
+      Button(action: dismissAction, label: {
         Text("Done").bold()
-      }
+      })
     }
     .accentColor(Color.pink)
   }
