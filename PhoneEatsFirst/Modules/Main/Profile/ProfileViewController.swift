@@ -19,19 +19,19 @@ class ProfileViewController: UIViewController {
   var displayName: UILabel!
   var buttonR: UIButton!
   var buttonL: UIButton!
+  var bio: UITextView!
+  var buttonsHStack: UIStackView!
+  var followHStack: UIStackView!
+  var followButton: UIButton!
 
   override func viewDidLoad() {
     scrollView = UIScrollView(frame: view.safeAreaLayoutGuide.layoutFrame)
-    scrollView.bounces = true
+    scrollView.translatesAutoresizingMaskIntoConstraints = false
+    scrollView.isScrollEnabled = true
+    scrollView.contentSize = CGSize(width: 400, height: 3000)
+    scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -4, bottom: 4, right: -6)
     view.addSubview(scrollView)
-
-//    let viewVStack = UIStackView()
-//    viewVStack.axis = .vertical
-//    viewVStack.alignment = .leading
-//    viewVStack.translatesAutoresizingMaskIntoConstraints = false
-//    scrollView.addSubview(viewVStack)
-//
-
+    
     // user with no profile picture
 //    if user.profileImageUrl == nil {
 //      profileImageView = UIImageView(image: UIImage(named: "person.crop.circle.fill"))
@@ -60,22 +60,26 @@ class ProfileViewController: UIViewController {
     profileImageView.frame = CGRect(x: 0, y: 0, width: 120, height: 120)
     profileImageView.contentMode = .scaleAspectFit
     profileImageView.translatesAutoresizingMaskIntoConstraints = false
-//      scrollView.addSubview(profileImageView)
+    scrollView.addSubview(profileImageView)
 
     let userLabel = UILabel()
     userLabel.text = "@\(user.username)"
     userLabel.textColor = .systemGray
+    userLabel.translatesAutoresizingMaskIntoConstraints = false
 
     displayName = UILabel()
     displayName.text = user.firstName + " " + user.lastName
-    displayName.textColor = .black
+    displayName.textColor = .systemPink
+    displayName.translatesAutoresizingMaskIntoConstraints = false
+    
+    scrollView.addSubview(userLabel)
+    scrollView.addSubview(displayName)
 
     let followersVStack = UIStackView()
     followersVStack.axis = .vertical
     followersVStack.distribution = .equalSpacing
     followersVStack.spacing = 4
     followersVStack.alignment = .center
-    followersVStack.backgroundColor = .blue
     followersVStack.contentHuggingPriority(for: .horizontal)
     followersVStack.frame = CGRect(x: 10, y: 20, width: 100, height: 150)
     followersVStack.translatesAutoresizingMaskIntoConstraints = false
@@ -85,7 +89,6 @@ class ProfileViewController: UIViewController {
     followingVStack.distribution = .equalSpacing
     followingVStack.spacing = 4
     followingVStack.alignment = .center
-    followingVStack.backgroundColor = .brown
     followingVStack.contentHuggingPriority(for: .horizontal)
     followingVStack.frame = CGRect(x: 0, y: 0, width: 100, height: 200)
     followingVStack.translatesAutoresizingMaskIntoConstraints = false
@@ -114,95 +117,242 @@ class ProfileViewController: UIViewController {
     followersVStack.addArrangedSubview(followersBtn)
     followersVStack.addArrangedSubview(followersCount)
 
-    let followHStack = UIStackView()
+    followHStack = UIStackView()
     followHStack.axis = .horizontal
-    followHStack.distribution = .equalCentering
-    followHStack.spacing = 4
+    followHStack.distribution = .equalSpacing
+    followHStack.spacing = 2
     followHStack.alignment = .top
-    followHStack.backgroundColor = .gray
+    followHStack.backgroundColor = .systemGray
+    followHStack.contentHuggingPriority(for: .vertical)
     followHStack.frame = CGRect(x: 0, y: 0, width: 300, height: 200)
     followHStack.translatesAutoresizingMaskIntoConstraints = false
 
     followHStack.addArrangedSubview(followersVStack)
     followHStack.addArrangedSubview(followingVStack)
-
-    let picAndNameVStack = UIStackView()
-    picAndNameVStack.axis = .vertical
-    picAndNameVStack.distribution = .fillProportionally
-    picAndNameVStack.spacing = 2
-    picAndNameVStack.alignment = .center
-    picAndNameVStack.backgroundColor = .red
-    picAndNameVStack.contentHuggingPriority(for: .horizontal)
-    picAndNameVStack.frame = CGRect(x: 0, y: 0, width: 100, height: 160)
-
-    picAndNameVStack.addArrangedSubview(profileImageView)
-    picAndNameVStack.addArrangedSubview(userLabel)
-    picAndNameVStack.addArrangedSubview(displayName)
+    
+    bio = UITextView()
+    bio.text = "This is the bio"
+    bio.isEditable = false
+    bio.isSelectable = false
+    bio.translatesAutoresizingMaskIntoConstraints = false
+    bio.frame = CGRect(x: 0, y: 0, width: 100, height: 80)
+    bio.backgroundColor = .brown
     
     // buttons
+    buttonL = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
+    buttonL.setTitle("Edit Profile", for: .normal)
+    buttonL.setTitleColor(.systemPink, for: .normal)
+    buttonL.layer.borderColor = UIColor.systemPink.cgColor
+    buttonL.layer.borderWidth = 1
+    buttonL.layer.cornerRadius = 10
+    buttonL.translatesAutoresizingMaskIntoConstraints = false
+    buttonL.addTarget(self, action: #selector(leftBtnPressed), for: .touchUpInside)
     
+    buttonR = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
+    buttonR.setTitle("Settings", for: .normal)
+    buttonR.setTitleColor(.systemPink, for: .normal)
+    buttonR.layer.borderColor = UIColor.systemPink.cgColor
+    buttonR.layer.borderWidth = 1
+    buttonR.layer.cornerRadius = 10
+    buttonR.translatesAutoresizingMaskIntoConstraints = false
+    buttonR.addTarget(self, action: #selector(rightBtnPressed), for: .touchUpInside)
     
-    let buttonsHStack = UIStackView()
+    followButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
+    followButton.setTitle("Follow", for: .normal)
+    followButton.setTitleColor(.systemPink, for: .normal)
+    followButton.backgroundColor = .systemPink
+    followButton.layer.borderColor = UIColor.systemPink.cgColor
+    followButton.layer.borderWidth = 1
+    followButton.layer.cornerRadius = 10
+//    followButton.translatesAutoresizingMaskIntoConstraints = false
+    followButton.addTarget(self, action: #selector(followersBtnPressed), for: .touchUpInside)
+    
+    buttonsHStack = UIStackView()
     buttonsHStack.axis = .horizontal
     buttonsHStack.distribution = .fillProportionally
     buttonsHStack.spacing = 4
-    buttonsHStack.backgroundColor = .magenta
+    buttonsHStack.alignment = .bottom
     buttonsHStack.frame = CGRect(x: 0, y: 0, width: 300, height: 100)
+    buttonsHStack.contentHuggingPriority(for: .vertical)
     buttonsHStack.translatesAutoresizingMaskIntoConstraints = false
     
-
-    let profileHStack = UIStackView()
-    profileHStack.frame = CGRect(x: 0, y: 0, width: 300, height: 440)
-    profileHStack.axis = .horizontal
-    profileHStack.distribution = .equalCentering
-    profileHStack.alignment = .top
-    profileHStack.spacing = 16
-    profileHStack.backgroundColor = .green
-    profileHStack.translatesAutoresizingMaskIntoConstraints = false
-
-    profileHStack.addArrangedSubview(picAndNameVStack)
-    profileHStack.addArrangedSubview(followHStack)
-    scrollView.addSubview(profileHStack)
+    // check if user object is current user to display appropriate buttons
+    if repository.user?.id != user.id {
+      buttonsHStack.addArrangedSubview(followButton)
+    } else {
+      buttonsHStack.addArrangedSubview(buttonR)
+      buttonsHStack.addArrangedSubview(buttonL)
+    }
+    scrollView.addSubview(buttonsHStack)
+    scrollView.addSubview(followHStack)
+    scrollView.addSubview(bio)
+    
+    // line separator from the bio and reviews
+    let separator = UIView()
+    separator.backgroundColor = .systemGray
+    separator.translatesAutoresizingMaskIntoConstraints = false
+    scrollView.addSubview(separator)
+    
+    // stackview for reviews
+    let reviewsVStack = UIStackView()
+    reviewsVStack.spacing = 8
+    reviewsVStack.distribution = .equalSpacing
+    reviewsVStack.axis = .vertical
+    reviewsVStack.alignment = .center
+    reviewsVStack.backgroundColor = .purple
+    reviewsVStack.frame = CGRect(x: 0, y: 0, width: 300, height: 100)
+    reviewsVStack.translatesAutoresizingMaskIntoConstraints = false
+    scrollView.addSubview(reviewsVStack)
+    
+    // loop to create reviewView
+    for reviewID in user.userReviewsID {
+      let review = repository.getReview(id: reviewID)
+      let tagObjects = repository.getTagObjects(reviewID: reviewID)
+      let viewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tagObjects, dismissAction: {self.dismiss( animated: true, completion: nil )}))
+      
+      viewVC.view.frame = CGRect(x: 0, y: 0, width: 100, height: 130)
+      reviewsVStack.addArrangedSubview(viewVC.view)
+      reviewsVStack.addConstraintsSubView(subview: viewVC.view)
+      
+    }
 
     NSLayoutConstraint.activate([
-      profileHStack.topAnchor.constraint(equalTo: scrollView.topAnchor),
-      profileHStack.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor),
-      profileHStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-      profileHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-      profileHStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-      profileHStack.heightAnchor.constraint(equalToConstant: 240),
+      scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+      scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+      scrollView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor),
+      
+      buttonsHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      buttonsHStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+      buttonsHStack.topAnchor.constraint(equalTo: displayName.bottomAnchor, constant: 16),
+      buttonsHStack.widthAnchor.constraint(equalToConstant: (scrollView.frame.width - 40) / 2),
+      buttonsHStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+      buttonsHStack.heightAnchor.constraint(equalToConstant: 40),
 
-      followHStack.trailingAnchor.constraint(equalTo: profileHStack.trailingAnchor),
-      followHStack.leadingAnchor.constraint(
-        lessThanOrEqualTo: picAndNameVStack.trailingAnchor,
-        constant: 64
-      ),
-      followHStack.bottomAnchor.constraint(lessThanOrEqualTo: profileHStack.bottomAnchor),
-      followHStack.topAnchor.constraint(equalTo: profileHStack.topAnchor),
+      followHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      followHStack.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 32),
+      followHStack.bottomAnchor.constraint(lessThanOrEqualTo: bio.topAnchor),
+      followHStack.heightAnchor.constraint(equalToConstant: 60),
+      followHStack.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 8),
 
       followersVStack.topAnchor.constraint(equalTo: followHStack.topAnchor),
       followersVStack.bottomAnchor.constraint(lessThanOrEqualTo: followHStack.bottomAnchor),
       followersVStack.leadingAnchor.constraint(lessThanOrEqualTo: followHStack.leadingAnchor),
-      followersVStack.trailingAnchor.constraint(equalTo: followingVStack.leadingAnchor, constant: -4),
+      followersVStack.trailingAnchor.constraint(equalTo: followingVStack.leadingAnchor, constant: -2),
       followersVStack.widthAnchor.constraint(equalTo: followingVStack.widthAnchor),
       
-      followingVStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -8),
+      followingVStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
       
+      bio.topAnchor.constraint(equalTo: followersVStack.bottomAnchor, constant: 8),
+      bio.bottomAnchor.constraint(equalTo: buttonsHStack.topAnchor, constant: -16),
+      bio.leadingAnchor.constraint(equalTo: followHStack.leadingAnchor),
+      bio.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      
+      buttonL.widthAnchor.constraint(equalTo: buttonR.widthAnchor),
+
       profileImageView.widthAnchor.constraint(equalToConstant: 100),
       profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
+      profileImageView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 8),
+      profileImageView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
       
+      userLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 1),
+      userLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
+      userLabel.widthAnchor.constraint(equalToConstant: 150),
+      userLabel.heightAnchor.constraint(equalToConstant: 30),
+      
+      displayName.topAnchor.constraint(equalTo: userLabel.bottomAnchor, constant: 4),
+      displayName.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
+      displayName.widthAnchor.constraint(equalToConstant: 150),
+      displayName.heightAnchor.constraint(equalToConstant: 40),
+      
+      separator.topAnchor.constraint(equalTo: buttonsHStack.bottomAnchor, constant: 24),
+      separator.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+      separator.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      separator.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+      separator.heightAnchor.constraint(equalToConstant: 1),
+      
+      reviewsVStack.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 16),
+      reviewsVStack.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor),
+      reviewsVStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+      reviewsVStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      reviewsVStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+      reviewsVStack.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
     ])
+  }
+  
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    
+//    let b = buttonsHStack.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
+//    b.priority = UILayoutPriority(rawValue: 750)
+//    b.isActive = true
+//
+//    let f = followHStack.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
+//    f.priority = UILayoutPriority(rawValue: 750)
+//    f.isActive = true
+  }
+  
+  @objc func followBtnPressed() {
+    
   }
 
   @objc func followersBtnPressed() {
     let followerVC = UIHostingController(rootView: FollowerView())
     followerVC.modalPresentationStyle = .formSheet
-    navigationController?.pushViewController(followerVC, animated: true)
+
+    if #available(iOS 15.0, *) {
+      present(followerVC, animated: true, completion: nil)
+    } else {
+      navigationController?.pushViewController(followerVC, animated: true)
+    }
   }
 
   @objc func followingBtnPressed() {
     let followingVC = UIHostingController(rootView: FollowingView())
-    followingVC.modalPresentationStyle = .formSheet
-    navigationController?.pushViewController(followingVC, animated: true)
+    followingVC.modalPresentationStyle = .pageSheet
+    
+    if #available(iOS 15.0, *) {
+      present(followingVC, animated: true, completion: nil)
+    } else {
+      navigationController?.pushViewController(followingVC, animated: true)
+    }
+  }
+  
+  @objc func rightBtnPressed() {
+    let editVC = UIHostingController(rootView: EditProfileView())
+    editVC.modalPresentationStyle = .pageSheet
+    editVC.navigationItem.title = "Edit Profile"
+
+    if #available(iOS 15.0, *) {
+      present(editVC, animated: true, completion: nil)
+    } else {
+      navigationController?.pushViewController(editVC, animated: true)
+    }
+  }
+  
+  @objc func leftBtnPressed() {
+    let settingsVC = UIHostingController(rootView: SettingsView())
+    settingsVC.modalPresentationStyle = .pageSheet
+    settingsVC.navigationItem.title = "Settings"
+
+    if #available(iOS 15.0, *) {
+      present(settingsVC, animated: true, completion: nil)
+    } else {
+      navigationController?.pushViewController(settingsVC, animated: true)
+    }
+  }
+}
+
+extension UIView {
+  func addConstraintsSubView(subview: UIView) {
+    self.addSubview(subview)
+    subview.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.activate([
+//      subview.topAnchor.constraint(equalTo: self.topAnchor),
+      subview.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+      subview.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+//      subview.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+    ])
   }
 }

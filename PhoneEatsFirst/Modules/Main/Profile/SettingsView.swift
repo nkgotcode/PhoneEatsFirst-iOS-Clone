@@ -74,15 +74,15 @@ struct SettingsView: View {
         .hoverEffect(.highlight)
       } // VStack
       .padding()
-      .navigationTitle("Settings")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        Button {
-          presentationMode.wrappedValue.dismiss()
-        } label: {
-          Text("Done").bold()
-        }
-      }
+//      .navigationTitle("Settings")
+//      .navigationBarTitleDisplayMode(.inline)
+//      .toolbar {
+//        Button {
+//          presentationMode.wrappedValue.dismiss()
+//        } label: {
+//          Text("Done").bold()
+//        }
+//      }
     }
   }
 }

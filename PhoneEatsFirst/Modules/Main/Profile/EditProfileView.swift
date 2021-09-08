@@ -64,24 +64,24 @@ struct EditProfileView: View {
             .foregroundColor(Color(.secondarySystemBackground))
         )
       } // VStack
-      .navigationTitle("Edit Profile")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button {
-            presentationMode.wrappedValue.dismiss()
-          } label: {
-            Text("Done").bold()
-          }
-        }
-        ToolbarItem(placement: .navigationBarLeading) {
-          Button {
-            presentationMode.wrappedValue.dismiss()
-          } label: {
-            Text("Save").bold()
-          }
-        }
-      }
+//      .navigationTitle("Edit Profile")
+//      .navigationBarTitleDisplayMode(.inline)
+//      .toolbar {
+//        ToolbarItem(placement: .navigationBarTrailing) {
+//          Button {
+//            presentationMode.wrappedValue.dismiss()
+//          } label: {
+//            Text("Done").bold()
+//          }
+//        }
+//        ToolbarItem(placement: .navigationBarLeading) {
+//          Button {
+//            presentationMode.wrappedValue.dismiss()
+//          } label: {
+//            Text("Save").bold()
+//          }
+//        }
+//      }
     } // NavigationView
   }
 }

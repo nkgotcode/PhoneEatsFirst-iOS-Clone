@@ -115,9 +115,12 @@ extension HomeViewController: UICollectionViewDelegate {
     let tags = repository.getTagObjects(reviewID: reviewID)
     let reviewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tags, dismissAction: {self.dismiss( animated: true, completion: nil )}))
     reviewVC.modalPresentationStyle = .pageSheet
-//    reviewVC.navigationItem.hidesBackButton = false
-//    reviewVC.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(popView))
-    navigationController?.present(reviewVC, animated: true, completion: nil)
+
+    if #available(iOS 15.0, *) {
+      navigationController?.present(reviewVC, animated: true, completion: nil)
+    } else {
+      navigationController?.pushViewController(reviewVC, animated: true)
+    }
   }
   
 }

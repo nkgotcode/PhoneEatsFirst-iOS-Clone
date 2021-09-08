@@ -128,9 +128,14 @@ final class DataRepository: ObservableObject {
             case "description": description = d.value as? String
             default: return
             }
-            // create tag object and append to return array
-            let tag = ReviewTag(id: doc.documentID, x: x, y: y, description: description!)
-            tagObjects.append(tag)
+            if description == nil {
+              let tag = ReviewTag(id: doc.documentID, x: x, y: y, description: "")
+              tagObjects.append(tag)
+            } else {
+              // create tag object and append to return array
+              let tag = ReviewTag(id: doc.documentID, x: x, y: y, description: description!)
+              tagObjects.append(tag)
+            }
           }
         }
       }

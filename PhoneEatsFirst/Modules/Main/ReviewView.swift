@@ -29,23 +29,27 @@ struct ReviewView: View {
     let displayTime = repository.getDisplayTimestamp(creationDate: review.creationDate!)
     
 //    ScrollView {
-    NavigationView {
+//    NavigationView {
       VStack(alignment: .leading, spacing: 0) {
         HStack {
           Button {
-            presentingProfileView = true
+//            presentingProfileView = true
           }label: {
-            Image(systemName: "person.crop.circle.fill")
-              .resizable()
-              .frame(width: 20, height: 20)
-    
-            Text(user!.username)
-              .font(.headline)
-              .foregroundColor(Color.pink)
-          }.sheet(isPresented: $presentingProfileView) {
-            // TODO: force unwrap?
-            ProfileView(user: repository.getUser(id: review.userId)!).accentColor(Color.pink)
+            NavigationLink(destination: ProfileViewWrapper(user: user!), label: {
+              Image(systemName: "person.crop.circle.fill")
+                .resizable()
+                .frame(width: 20, height: 20)
+      
+              Text(user!.username)
+                .font(.headline)
+                .foregroundColor(Color.pink)
+            })
+
           }
+//          .sheet(isPresented: $presentingProfileView) {
+//            // TODO: force unwrap?
+//            ProfileView(user: repository.getUser(id: review.userId)!).accentColor(Color.pink)
+//          }
           
           Spacer()
             
@@ -160,18 +164,38 @@ struct ReviewView: View {
         Text(displayTime)
           .font(.caption2.weight(.light))
           .padding(.vertical, 4)
+        
+        
+        Spacer()
       }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 8)
+      .padding(.horizontal, 8)
+//      .padding(.vertical, 8)
 //    } // ScrollView
-      .navigationTitle("Review")
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      Button(action: dismissAction, label: {
-        Text("Done").bold()
-      })
-    }
-    .accentColor(Color.pink)
+//      .navigationTitle("Review")
+//    .navigationBarTitleDisplayMode(.inline)
+//    .toolbar {
+//      Button(action: dismissAction, label: {
+//        Text("Done").bold()
+//      })
+//    }
+//    .accentColor(Color.pink)
+//  }
   }
+}
+
+struct ProfileViewWrapper: UIViewControllerRepresentable {
+  typealias UIViewControllerType = ProfileViewController
+  var user: User
+  
+  func makeUIViewController(context: Context) -> ProfileViewController {
+    let profile = ProfileViewController()
+    profile.user = self.user
+    
+    return profile
   }
+  
+  func updateUIViewController(_ uiViewController: ProfileViewController, context: Context) {
+    
+  }
+  
 }
