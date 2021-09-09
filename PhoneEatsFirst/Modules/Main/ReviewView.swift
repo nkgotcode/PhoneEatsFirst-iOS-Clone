@@ -29,13 +29,13 @@ struct ReviewView: View {
     let displayTime = repository.getDisplayTimestamp(creationDate: review.creationDate!)
     
 //    ScrollView {
-//    NavigationView {
+    NavigationView {
       VStack(alignment: .leading, spacing: 0) {
         HStack {
           Button {
-//            presentingProfileView = true
+            presentingProfileView = true
           }label: {
-            NavigationLink(destination: ProfileViewWrapper(user: user!), label: {
+            NavigationLink(destination: ProfileViewWrapper(user: user!), isActive: $presentingProfileView, label: {
               Image(systemName: "person.crop.circle.fill")
                 .resizable()
                 .frame(width: 20, height: 20)
@@ -89,7 +89,7 @@ struct ReviewView: View {
           Spacer()
           if let stars = business?.stars {
             let tmp = repository.getTruncatedRatings(ratings: stars)
-            Label(String(format: "%f", stars), systemImage: "star.fill")
+            Label(String(format: "%.2f", stars), systemImage: "star.fill")
               .font(.footnote)
               .foregroundColor(Color(.systemPink))
           }
@@ -169,23 +169,29 @@ struct ReviewView: View {
         Spacer()
       }
       .padding(.horizontal, 8)
+      
 //      .padding(.vertical, 8)
 //    } // ScrollView
-//      .navigationTitle("Review")
-//    .navigationBarTitleDisplayMode(.inline)
+
 //    .toolbar {
 //      Button(action: dismissAction, label: {
 //        Text("Done").bold()
 //      })
 //    }
 //    .accentColor(Color.pink)
-//  }
+    }
+//    .navigationBarHidden(true)
+//    .navigationBarBackButtonHidden(false)
+    .navigationTitle("\(user!.username)'s Review")
+    .navigationBarTitleDisplayMode(.inline)
   }
 }
 
 struct ProfileViewWrapper: UIViewControllerRepresentable {
   typealias UIViewControllerType = ProfileViewController
   var user: User
+  class RandomClass { }
+  let x = RandomClass()
   
   func makeUIViewController(context: Context) -> ProfileViewController {
     let profile = ProfileViewController()
@@ -195,7 +201,6 @@ struct ProfileViewWrapper: UIViewControllerRepresentable {
   }
   
   func updateUIViewController(_ uiViewController: ProfileViewController, context: Context) {
-    
   }
   
 }

@@ -96,6 +96,15 @@ final class DataRepository: ObservableObject {
     reviews.first(where: { $0.id == id })
   }
   
+  func getFollowingReviews(following: [String]) -> [String] {
+    var ret: [String] = []
+    for id in following {
+      let u = getUser(id: id)
+      ret.append(contentsOf: u!.userReviewsID)
+    }
+    return ret
+  }
+  
   func getDisplayTimestamp(creationDate: Timestamp) -> String {
     let postDate = Date(timeIntervalSince1970: TimeInterval(creationDate.seconds))
     let formatter = RelativeDateTimeFormatter()
@@ -357,6 +366,14 @@ final class DataRepository: ObservableObject {
         return
       }
       completion?(true)
+    }
+  }
+  
+  func checkCurrentUser(userID: String) -> Bool {
+    if userID == user?.id {
+      return true
+    } else {
+      return false
     }
   }
 

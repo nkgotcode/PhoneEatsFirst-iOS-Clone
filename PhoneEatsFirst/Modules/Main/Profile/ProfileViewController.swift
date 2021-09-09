@@ -23,13 +23,22 @@ class ProfileViewController: UIViewController {
   var buttonsHStack: UIStackView!
   var followHStack: UIStackView!
   var followButton: UIButton!
-
+  
+//  init(user: User) {
+//    self.user = user
+//    super.init(nibName: nil, bundle: nil)
+//  }
+//  
+//  required init?(coder: NSCoder) {
+//    fatalError("init(coder:) has not been implemented")
+//  }
+  
   override func viewDidLoad() {
     scrollView = UIScrollView(frame: view.safeAreaLayoutGuide.layoutFrame)
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.isScrollEnabled = true
     scrollView.contentSize = CGSize(width: 400, height: 3000)
-    scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -4, bottom: 4, right: -6)
+    scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
     view.addSubview(scrollView)
     
     // user with no profile picture
@@ -159,7 +168,7 @@ class ProfileViewController: UIViewController {
     
     followButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
     followButton.setTitle("Follow", for: .normal)
-    followButton.setTitleColor(.systemPink, for: .normal)
+//    followButton.setTitleColor(.systemPink, for: .normal)
     followButton.backgroundColor = .systemPink
     followButton.layer.borderColor = UIColor.systemPink.cgColor
     followButton.layer.borderWidth = 1
@@ -179,9 +188,12 @@ class ProfileViewController: UIViewController {
     // check if user object is current user to display appropriate buttons
     if repository.user?.id != user.id {
       buttonsHStack.addArrangedSubview(followButton)
+      buttonsHStack.widthAnchor.constraint(equalToConstant: 100).isActive = true
     } else {
       buttonsHStack.addArrangedSubview(buttonR)
       buttonsHStack.addArrangedSubview(buttonL)
+      buttonL.widthAnchor.constraint(equalTo: buttonR.widthAnchor).isActive = true
+      buttonsHStack.widthAnchor.constraint(equalToConstant: (scrollView.frame.width - 40) / 2).isActive = true
     }
     scrollView.addSubview(buttonsHStack)
     scrollView.addSubview(followHStack)
@@ -199,7 +211,7 @@ class ProfileViewController: UIViewController {
     reviewsVStack.distribution = .equalSpacing
     reviewsVStack.axis = .vertical
     reviewsVStack.alignment = .center
-    reviewsVStack.backgroundColor = .purple
+//    reviewsVStack.backgroundColor = .purple
     reviewsVStack.frame = CGRect(x: 0, y: 0, width: 300, height: 100)
     reviewsVStack.translatesAutoresizingMaskIntoConstraints = false
     scrollView.addSubview(reviewsVStack)
@@ -208,11 +220,12 @@ class ProfileViewController: UIViewController {
     for reviewID in user.userReviewsID {
       let review = repository.getReview(id: reviewID)
       let tagObjects = repository.getTagObjects(reviewID: reviewID)
-      let viewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tagObjects, dismissAction: {self.dismiss( animated: true, completion: nil )}))
-      
-      viewVC.view.frame = CGRect(x: 0, y: 0, width: 100, height: 130)
-      reviewsVStack.addArrangedSubview(viewVC.view)
-      reviewsVStack.addConstraintsSubView(subview: viewVC.view)
+//      let viewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tagObjects, dismissAction: {self.dismiss( animated: true, completion: nil )}))
+//
+//      viewVC.view.frame = CGRect(x: 0, y: 0, width: 100, height: 130)
+      let reviewView = ReviewViewController(review: review!, tagObjects: tagObjects)
+      reviewsVStack.addArrangedSubview(reviewView.view)
+      reviewsVStack.addConstraintsSubView(subview: reviewView.view)
       
     }
 
@@ -226,9 +239,9 @@ class ProfileViewController: UIViewController {
       buttonsHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
       buttonsHStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
       buttonsHStack.topAnchor.constraint(equalTo: displayName.bottomAnchor, constant: 16),
-      buttonsHStack.widthAnchor.constraint(equalToConstant: (scrollView.frame.width - 40) / 2),
+
       buttonsHStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      buttonsHStack.heightAnchor.constraint(equalToConstant: 40),
+      buttonsHStack.heightAnchor.constraint(equalToConstant: 50),
 
       followHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
       followHStack.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 32),
@@ -249,7 +262,6 @@ class ProfileViewController: UIViewController {
       bio.leadingAnchor.constraint(equalTo: followHStack.leadingAnchor),
       bio.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
       
-      buttonL.widthAnchor.constraint(equalTo: buttonR.widthAnchor),
 
       profileImageView.widthAnchor.constraint(equalToConstant: 100),
       profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),

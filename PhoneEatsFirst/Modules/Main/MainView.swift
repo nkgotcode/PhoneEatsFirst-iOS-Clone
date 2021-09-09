@@ -38,7 +38,7 @@ class MainViewController: UITabBarController {
 //    )
     
     let homeVC = HomeViewController()
-    homeVC.user = repository.user
+    homeVC.user = repository.user!
     homeVC.title = "Home"
     homeVC.navigationItem.leftBarButtonItem = addFriendButtonItem
     homeVC.navigationItem.rightBarButtonItem = notificationButtonItem

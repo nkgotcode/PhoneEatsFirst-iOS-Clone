@@ -23,10 +23,19 @@ class HomeViewController: UIViewController {
   var layout: CustomCollectionViewFlowLayout?
   var reviewID: [String]?
   var reviewDict = [Int:String]()
+  var followingReview: [String]!
+  var scrollView: UIScrollView!
   
   override func viewDidLoad() {
     super.viewDidLoad()
     self.reviewID = user.userReviewsID
+    followingReview = repository.getFollowingReviews(following: user.following)
+    self.reviewID?.append(contentsOf: followingReview)
+    
+    scrollView = UIScrollView()
+    scrollView.isScrollEnabled = true
+    scrollView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(scrollView)
     
     if (reviewID!.count <= 0) {
       return
@@ -40,9 +49,19 @@ class HomeViewController: UIViewController {
       collectionView?.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
       collectionView?.delegate = self
       collectionView?.dataSource = self
-      view.addSubview(collectionView!)
+      scrollView.contentSize = CGSize(width: 400, height: 2300)
+      scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
+//      view.addSubview(collectionView!)
+      scrollView.addSubview(collectionView!)
+      
+      NSLayoutConstraint.activate([
+        scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+        scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+        scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+//        scrollView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor)
+      ])
     }
-    
   }
   
   override func viewWillLayoutSubviews() {
@@ -115,6 +134,8 @@ extension HomeViewController: UICollectionViewDelegate {
     let tags = repository.getTagObjects(reviewID: reviewID)
     let reviewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tags, dismissAction: {self.dismiss( animated: true, completion: nil )}))
     reviewVC.modalPresentationStyle = .pageSheet
+    reviewVC.view.frame = UIScreen.main.bounds
+    reviewVC.loadViewIfNeeded()
 
     if #available(iOS 15.0, *) {
       navigationController?.present(reviewVC, animated: true, completion: nil)
