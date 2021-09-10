@@ -18,7 +18,7 @@ struct ReviewView: View {
   var dismissAction: (() -> Void)
   
   @Injected private var repository: DataRepository
-  
+  @ObservedObject var profilePictureModel: ProfilePictureModel
   @State private var bookmarked: Bool = false
   @State private var liked: Bool = false
   @State private var presentingProfileView: Bool = false
@@ -35,10 +35,10 @@ struct ReviewView: View {
           Button {
             presentingProfileView = true
           }label: {
-            NavigationLink(destination: ProfileViewWrapper(user: user!), isActive: $presentingProfileView, label: {
-              Image(systemName: "person.crop.circle.fill")
+            NavigationLink(destination: ProfileViewWrapper(user: user!, profilePictureModel: profilePictureModel), isActive: $presentingProfileView, label: {
+              Image(uiImage: profilePictureModel.profileImage)
                 .resizable()
-                .frame(width: 20, height: 20)
+                .frame(width: 32, height: 32)
       
               Text(user!.username)
                 .font(.headline)
@@ -88,7 +88,6 @@ struct ReviewView: View {
             
           Spacer()
           if let stars = business?.stars {
-            let tmp = repository.getTruncatedRatings(ratings: stars)
             Label(String(format: "%.2f", stars), systemImage: "star.fill")
               .font(.footnote)
               .foregroundColor(Color(.systemPink))
@@ -133,12 +132,13 @@ struct ReviewView: View {
           
           // comment button
           NavigationLink {
-            CommentView(review: review)
+//            CommentView(review: review)
+            CommentViewWrapper(review: review)
           } label: {
             Image(systemName: "bubble.right")
               .font(.title2)
               .accentColor(Color.pink)
-          }
+          }.navigationBarHidden(true)
             
           Spacer()
             
@@ -180,8 +180,7 @@ struct ReviewView: View {
 //    }
 //    .accentColor(Color.pink)
     }
-//    .navigationBarHidden(true)
-//    .navigationBarBackButtonHidden(false)
+//    .navigationBarBackButtonHidden(true)
     .navigationTitle("\(user!.username)'s Review")
     .navigationBarTitleDisplayMode(.inline)
   }
@@ -190,17 +189,34 @@ struct ReviewView: View {
 struct ProfileViewWrapper: UIViewControllerRepresentable {
   typealias UIViewControllerType = ProfileViewController
   var user: User
+  var profilePictureModel: ProfilePictureModel
   class RandomClass { }
   let x = RandomClass()
   
   func makeUIViewController(context: Context) -> ProfileViewController {
     let profile = ProfileViewController()
     profile.user = self.user
-    
+    profile.profilePictureModel = self.profilePictureModel
     return profile
   }
   
   func updateUIViewController(_ uiViewController: ProfileViewController, context: Context) {
   }
   
+}
+
+struct CommentViewWrapper: UIViewControllerRepresentable {
+  typealias UIViewControllerType = CommentViewController
+  var review: Review
+  class RandomClass { }
+  let x = RandomClass()
+  
+  func makeUIViewController(context: Context) -> CommentViewController {
+    let commentVC = CommentViewController()
+    commentVC.review = review
+    return commentVC
+  }
+  
+  func updateUIViewController(_ uiViewController: CommentViewController, context: Context) {
+  }
 }

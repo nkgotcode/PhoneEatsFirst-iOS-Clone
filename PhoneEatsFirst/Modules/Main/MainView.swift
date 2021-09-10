@@ -107,7 +107,7 @@ class MainViewController: UITabBarController {
     
     self.tabBar.isTranslucent = false
     self.tabBar.overrideUserInterfaceStyle = .dark
-    self.tabBar.inputViewController?.extendedLayoutIncludesOpaqueBars = true
+//    self.tabBar.inputViewController?.extendedLayoutIncludesOpaqueBars = true
   }
 
   @objc private func presentAddFriendView() {

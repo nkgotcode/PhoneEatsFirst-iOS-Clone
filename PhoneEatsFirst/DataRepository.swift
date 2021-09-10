@@ -21,6 +21,7 @@ final class DataRepository: ObservableObject {
   @Published var users: [User] = []
   @Published var businesses: [Business] = []
   @Published var reviews: [Review] = []
+  @Published var comments: [Comment] = []
 
   @Published private var firebaseUser: FirebaseAuth.User? = nil
   @Published var user: User? = nil
@@ -41,7 +42,7 @@ final class DataRepository: ObservableObject {
   let reviewPath = "reviews"
   let userPath = "users"
   let reviewTagPath = "reviewTags"
-  let commentPath = "comment"
+  let commentPath = "comments"
 
   private var authHandle: AuthStateDidChangeListenerHandle!
 
@@ -74,6 +75,11 @@ final class DataRepository: ObservableObject {
       .replaceError(with: [])
       .assign(to: \.reviews, on: self)
       .store(in: &cancellables)
+    
+    firestore.collection(commentPath).publisher(as: Comment.self)
+      .replaceError(with: [])
+      .assign(to: \.comments, on: self)
+      .store(in: &cancellables)
   }
 
   deinit {
@@ -94,6 +100,14 @@ final class DataRepository: ObservableObject {
   
   func getReview(id: String) -> Review? {
     reviews.first(where: { $0.id == id })
+  }
+  
+  func getComments(commentIDs: [String]) -> [Comment] {
+    var ret = [Comment]()
+    for id in commentIDs {
+      ret.append(comments.first(where: { $0.id == id})!)
+    }
+    return ret
   }
   
   func getFollowingReviews(following: [String]) -> [String] {
@@ -150,10 +164,6 @@ final class DataRepository: ObservableObject {
       }
     })
     return tagObjects
-  }
-  
-  func getTruncatedRatings(ratings: Double) -> Double {
-    ratings.truncate(places: 2)
   }
 
   func login(email: String, password: String, completion: ((Bool) -> Void)? = nil) {
@@ -303,6 +313,55 @@ final class DataRepository: ObservableObject {
         .setData(from: user)
 
       completion?(true)
+    }
+  }
+  
+  func followUser(id: String) {
+    var followingUser = getUser(id: id)
+    followingUser?.followers.append(user!.id)
+    firestore.collection(userPath).document(id).updateData(["followers": followingUser?.followers])
+    user?.following.append(followingUser!.id)
+    firestore.collection(userPath).document(user!.id).updateData(["following": user?.following])
+  }
+  
+  func unfollowUser(id: String) {
+    var unfollowingUser = getUser(id: id)
+    unfollowingUser?.followers.removeAll(where: {$0 == user?.id})
+    firestore.collection(userPath).document(id).updateData(["followers": unfollowingUser?.followers])
+    user?.following.removeAll(where: {$0 == unfollowingUser!.id})
+    firestore.collection(userPath).document(user!.id).updateData(["following": user?.following])
+  }
+  
+  func uploadProfilePicture(image: UIImage) {
+    var picURL: URL?
+    let storageRef = storage.reference()
+    guard let uid = user?.id else { return }
+    let userRef = firestore.collection(userPath).document(uid)
+    let profileImageID = userRef.documentID
+    let picRef = storageRef.child("\(uid)/profile/\(profileImageID).jpg")
+    let metadata = StorageMetadata()
+    metadata.contentType = "image/jpeg"
+    
+    // upload image to storage
+    let uploadTask = storageRef.child("\(uid)/profile/\(profileImageID).jpg").putData(image.pngData()!, metadata: metadata) { fullmetadata, err in
+      if err != nil {
+        print("Error uploading image")
+        return
+      }
+    }
+    
+    // get url after done uploading
+    uploadTask.observe(.success) { snapshot in
+      snapshot.reference.downloadURL { [self] url, error in
+        if error != nil {
+          print(error?.localizedDescription)
+        }
+        else {
+          print(url)
+          self.firestore.collection(self.userPath).document(uid).updateData([
+            "profileImageUrl": url!.absoluteString])
+        }
+      }
     }
   }
 

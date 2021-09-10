@@ -9,9 +9,15 @@
 import FirebaseStorage
 import Resolver
 import SwiftUI
+import SDWebImageSwiftUI
+import SDWebImage
+import Combine
 
 struct EditProfileView: View {
   @Injected var repository: DataRepository
+  
+  var user: User
+  @ObservedObject var profilePictureModel: ProfilePictureModel
 
   @Environment(\.presentationMode) private var presentationMode
 
@@ -23,18 +29,18 @@ struct EditProfileView: View {
 
   var body: some View {
     NavigationView {
-      VStack {
+      VStack () {
         Button {
           presentingPhotoLibrary = true
         } label: {
-          Image(uiImage: profileImage)
-            .resizable()
-            .scaledToFill()
-            .frame(width: 80, height: 80, alignment: .center)
-            .cornerRadius(20)
-
+            Image(uiImage: profilePictureModel.profileImage)
+              .resizable()
+              .scaledToFill()
+              .frame(width: 80, height: 80, alignment: .center)
+              .clipShape(Circle())
+              .foregroundColor(Color.pink)
         }.sheet(isPresented: $presentingPhotoLibrary) {
-          ImagePicker(selectedImage: $profileImage, sourceType: .photoLibrary)
+          ImagePicker(selectedImage: $profilePictureModel.profileImage, sourceType: .photoLibrary)
         }
         Text("Change Profile Picture").bold() // TODO:
 
@@ -64,14 +70,17 @@ struct EditProfileView: View {
             .foregroundColor(Color(.secondarySystemBackground))
         )
       } // VStack
+      .navigationBarHidden(true)
+      .padding(.vertical, 32)
 //      .navigationTitle("Edit Profile")
 //      .navigationBarTitleDisplayMode(.inline)
 //      .toolbar {
 //        ToolbarItem(placement: .navigationBarTrailing) {
 //          Button {
 //            presentationMode.wrappedValue.dismiss()
+//            profilePictureModel.newProfileChange = true
 //          } label: {
-//            Text("Done").bold()
+//            Text("Save").bold()
 //          }
 //        }
 //        ToolbarItem(placement: .navigationBarLeading) {
@@ -86,8 +95,8 @@ struct EditProfileView: View {
   }
 }
 
-struct EditProfileView_Previews: PreviewProvider {
-  static var previews: some View {
-    EditProfileView()
-  }
-}
+//struct EditProfileView_Previews: PreviewProvider {
+//  static var previews: some View {
+//    EditProfileView()
+//  }
+//}

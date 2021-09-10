@@ -33,6 +33,7 @@ class HomeViewController: UIViewController {
     self.reviewID?.append(contentsOf: followingReview)
     
     scrollView = UIScrollView()
+    scrollView.backgroundColor = .systemBackground
     scrollView.isScrollEnabled = true
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(scrollView)
@@ -49,7 +50,7 @@ class HomeViewController: UIViewController {
       collectionView?.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
       collectionView?.delegate = self
       collectionView?.dataSource = self
-      scrollView.contentSize = CGSize(width: 400, height: 2300)
+      scrollView.contentSize = CGSize(width: 400, height: view.frame.height)
       scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
 //      view.addSubview(collectionView!)
       scrollView.addSubview(collectionView!)
@@ -132,15 +133,22 @@ extension HomeViewController: UICollectionViewDelegate {
     let reviewID = reviewDict[indexPath.row]!
     let review = repository.getReview(id: reviewID)
     let tags = repository.getTagObjects(reviewID: reviewID)
-    let reviewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tags, dismissAction: {self.dismiss( animated: true, completion: nil )}))
-    reviewVC.modalPresentationStyle = .pageSheet
-    reviewVC.view.frame = UIScreen.main.bounds
-    reviewVC.loadViewIfNeeded()
+    let chosenUser = repository.getUser(id: review!.userId)
+    let profilePictureModel = ProfilePictureModel(user: chosenUser!, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: UIImageView())
+//    let reviewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tags, dismissAction: {self.dismiss( animated: true, completion: nil )}, profilePictureModel: profilePictureModel))
+    let feedReviewVC = FeedReviewView()
+    feedReviewVC.review = review
+    feedReviewVC.tagObjects = tags
+    feedReviewVC.profilePictureModel = profilePictureModel
+    let reviewVC = ReviewViewController(review: review!, tagObjects: tags)
+    reviewVC.profilePictureModel = profilePictureModel
+//    reviewVC.modalPresentationStyle = .pageSheet
+//    reviewVC.view.frame = UIScreen.main.bounds
 
     if #available(iOS 15.0, *) {
-      navigationController?.present(reviewVC, animated: true, completion: nil)
+      navigationController?.present(feedReviewVC, animated: true, completion: nil)
     } else {
-      navigationController?.pushViewController(reviewVC, animated: true)
+      navigationController?.pushViewController(feedReviewVC, animated: true)
     }
   }
   
@@ -199,3 +207,4 @@ class CustomCollectionViewFlowLayout: UICollectionViewFlowLayout {
     self.configLayout()
   }
 }
+

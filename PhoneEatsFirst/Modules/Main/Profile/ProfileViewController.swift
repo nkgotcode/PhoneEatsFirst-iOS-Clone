@@ -10,6 +10,7 @@ import Resolver
 import SDWebImage
 import SwiftUI
 import UIKit
+import Combine
 
 class ProfileViewController: UIViewController {
   @Injected var repository: DataRepository
@@ -23,15 +24,8 @@ class ProfileViewController: UIViewController {
   var buttonsHStack: UIStackView!
   var followHStack: UIStackView!
   var followButton: UIButton!
-  
-//  init(user: User) {
-//    self.user = user
-//    super.init(nibName: nil, bundle: nil)
-//  }
-//  
-//  required init?(coder: NSCoder) {
-//    fatalError("init(coder:) has not been implemented")
-//  }
+  var followedButton: UIButton!
+  var profilePictureModel: ProfilePictureModel!
   
   override func viewDidLoad() {
     scrollView = UIScrollView(frame: view.safeAreaLayoutGuide.layoutFrame)
@@ -41,31 +35,12 @@ class ProfileViewController: UIViewController {
     scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
     view.addSubview(scrollView)
     
-    // user with no profile picture
-//    if user.profileImageUrl == nil {
-//      profileImageView = UIImageView(image: UIImage(named: "person.crop.circle.fill"))
-//      profileImageView.frame = CGRect(x: 0, y: 0, width: 70, height: 70)
-//      profileImageView.contentMode = .scaleAspectFit
-//      print("placeholder profile image")
-//    } else { // user with profile picture
-//      profileImageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 70, height: 70))
-//      profileImageView.sd_setImage(with: URL(string: user.profileImageUrl!), completed: { [self]
-//        downloadedImage, error, cacheType, url in
-//        if let error = error {
-//          print("error downloading image: \(error.localizedDescription)")
-//          profileImageView = UIImageView(image: UIImage(named: "person.crop.circle.fill"))
-//          profileImageView.frame = CGRect(x: 0, y: 0, width: 70, height: 70)
-//          profileImageView.contentMode = .scaleAspectFit
-//          print("placeholder profile image")
-//        }
-//        else {
-//          print("successfully downloaded: \(String(describing: url))")
-//          profileImageView.contentMode = .scaleAspectFit
-//        }
-//      })
-//    }
-
-    profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill"))
+    profileImageView = UIImageView()
+    if profilePictureModel == nil {
+      self.profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
+    } else {
+      profileImageView = profilePictureModel.imgView
+    }
     profileImageView.frame = CGRect(x: 0, y: 0, width: 120, height: 120)
     profileImageView.contentMode = .scaleAspectFit
     profileImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -86,7 +61,7 @@ class ProfileViewController: UIViewController {
 
     let followersVStack = UIStackView()
     followersVStack.axis = .vertical
-    followersVStack.distribution = .equalSpacing
+    followersVStack.distribution = .equalCentering
     followersVStack.spacing = 4
     followersVStack.alignment = .center
     followersVStack.contentHuggingPriority(for: .horizontal)
@@ -95,43 +70,40 @@ class ProfileViewController: UIViewController {
 
     let followingVStack = UIStackView()
     followingVStack.axis = .vertical
-    followingVStack.distribution = .equalSpacing
+    followingVStack.distribution = .equalCentering
     followingVStack.spacing = 4
     followingVStack.alignment = .center
     followingVStack.contentHuggingPriority(for: .horizontal)
     followingVStack.frame = CGRect(x: 0, y: 0, width: 100, height: 200)
     followingVStack.translatesAutoresizingMaskIntoConstraints = false
-
+    
     let followersBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 77))
-    followersBtn.setTitle("Followers", for: .normal)
+    followersBtn.titleLabel?.lineBreakMode = .byWordWrapping
+    followersBtn.titleLabel?.numberOfLines = 2
+    followersBtn.setTitle("Followers\n\(user.followers.count)", for: .normal)
     followersBtn.setTitleColor(.systemPink, for: .normal)
+    followersBtn.titleLabel?.textAlignment = .center
+    followersBtn.sizeToFit()
     followersBtn.addTarget(self, action: #selector(followersBtnPressed), for: .touchUpInside)
 
-    let followersCount = UILabel(frame: CGRect(x: 0, y: 0, width: 100, height: 77))
-    followersCount.text = String(describing: user.followers.count)
-    followersCount.textColor = .systemPink
-
     let followingBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
-    followingBtn.setTitle("Following", for: .normal)
+    followingBtn.titleLabel?.lineBreakMode = .byWordWrapping
+    followingBtn.titleLabel?.numberOfLines = 2
+    followingBtn.setTitle("Following\n\(user.following.count)", for: .normal)
     followingBtn.setTitleColor(.systemPink, for: .normal)
+    followingBtn.titleLabel?.textAlignment = .center
+    followingBtn.sizeToFit()
     followingBtn.addTarget(self, action: #selector(followingBtnPressed), for: .touchUpInside)
 
-    let followingCount = UILabel()
-    followingCount.text = String(describing: user.following.count)
-    followingCount.textColor = .systemPink
-
     followingVStack.addArrangedSubview(followingBtn)
-    followingVStack.addArrangedSubview(followingCount)
-
+    
     followersVStack.addArrangedSubview(followersBtn)
-    followersVStack.addArrangedSubview(followersCount)
 
     followHStack = UIStackView()
     followHStack.axis = .horizontal
     followHStack.distribution = .equalSpacing
     followHStack.spacing = 2
     followHStack.alignment = .top
-    followHStack.backgroundColor = .systemGray
     followHStack.contentHuggingPriority(for: .vertical)
     followHStack.frame = CGRect(x: 0, y: 0, width: 300, height: 200)
     followHStack.translatesAutoresizingMaskIntoConstraints = false
@@ -145,7 +117,6 @@ class ProfileViewController: UIViewController {
     bio.isSelectable = false
     bio.translatesAutoresizingMaskIntoConstraints = false
     bio.frame = CGRect(x: 0, y: 0, width: 100, height: 80)
-    bio.backgroundColor = .brown
     
     // buttons
     buttonL = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
@@ -168,13 +139,19 @@ class ProfileViewController: UIViewController {
     
     followButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
     followButton.setTitle("Follow", for: .normal)
-//    followButton.setTitleColor(.systemPink, for: .normal)
     followButton.backgroundColor = .systemPink
-    followButton.layer.borderColor = UIColor.systemPink.cgColor
     followButton.layer.borderWidth = 1
     followButton.layer.cornerRadius = 10
 //    followButton.translatesAutoresizingMaskIntoConstraints = false
-    followButton.addTarget(self, action: #selector(followersBtnPressed), for: .touchUpInside)
+    followButton.addTarget(self, action: #selector(followBtnPressed), for: .touchUpInside)
+    
+    followedButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
+    followedButton.setTitle("Followed", for: .normal)
+    followedButton.layer.borderColor = UIColor.systemPink.cgColor
+    followedButton.layer.borderWidth = 1
+    followedButton.layer.cornerRadius = 10
+//    followButton.translatesAutoresizingMaskIntoConstraints = false
+    followedButton.addTarget(self, action: #selector(followedBtnPressed), for: .touchUpInside)
     
     buttonsHStack = UIStackView()
     buttonsHStack.axis = .horizontal
@@ -187,11 +164,17 @@ class ProfileViewController: UIViewController {
     
     // check if user object is current user to display appropriate buttons
     if repository.user?.id != user.id {
-      buttonsHStack.addArrangedSubview(followButton)
+      // if already followed
+      if ((repository.user?.following.contains(user.id)) != nil) {
+        buttonsHStack.addArrangedSubview(followedButton)
+      } else {
+        buttonsHStack.addArrangedSubview(followButton)
+      }
       buttonsHStack.widthAnchor.constraint(equalToConstant: 100).isActive = true
+
     } else {
-      buttonsHStack.addArrangedSubview(buttonR)
       buttonsHStack.addArrangedSubview(buttonL)
+      buttonsHStack.addArrangedSubview(buttonR)
       buttonL.widthAnchor.constraint(equalTo: buttonR.widthAnchor).isActive = true
       buttonsHStack.widthAnchor.constraint(equalToConstant: (scrollView.frame.width - 40) / 2).isActive = true
     }
@@ -220,13 +203,10 @@ class ProfileViewController: UIViewController {
     for reviewID in user.userReviewsID {
       let review = repository.getReview(id: reviewID)
       let tagObjects = repository.getTagObjects(reviewID: reviewID)
-//      let viewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tagObjects, dismissAction: {self.dismiss( animated: true, completion: nil )}))
-//
-//      viewVC.view.frame = CGRect(x: 0, y: 0, width: 100, height: 130)
       let reviewView = ReviewViewController(review: review!, tagObjects: tagObjects)
+      reviewView.profileVC = self
       reviewsVStack.addArrangedSubview(reviewView.view)
       reviewsVStack.addConstraintsSubView(subview: reviewView.view)
-      
     }
 
     NSLayoutConstraint.activate([
@@ -269,12 +249,12 @@ class ProfileViewController: UIViewController {
       profileImageView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
       
       userLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 1),
-      userLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
+      userLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 4),
       userLabel.widthAnchor.constraint(equalToConstant: 150),
       userLabel.heightAnchor.constraint(equalToConstant: 30),
       
       displayName.topAnchor.constraint(equalTo: userLabel.bottomAnchor, constant: 4),
-      displayName.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
+      displayName.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 4),
       displayName.widthAnchor.constraint(equalToConstant: 150),
       displayName.heightAnchor.constraint(equalToConstant: 40),
       
@@ -295,18 +275,20 @@ class ProfileViewController: UIViewController {
   
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    
-//    let b = buttonsHStack.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
-//    b.priority = UILayoutPriority(rawValue: 750)
-//    b.isActive = true
-//
-//    let f = followHStack.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
-//    f.priority = UILayoutPriority(rawValue: 750)
-//    f.isActive = true
+  }
+  
+  @objc func followedBtnPressed() {
+    buttonsHStack.removeArrangedSubview(followedButton)
+    followedButton.removeFromSuperview()
+    buttonsHStack.addArrangedSubview(followButton)
+    repository.unfollowUser(id: user.id)
   }
   
   @objc func followBtnPressed() {
-    
+    buttonsHStack.removeArrangedSubview(followButton)
+    followButton.removeFromSuperview()
+    buttonsHStack.addArrangedSubview(followedButton)
+    repository.followUser(id: user.id)
   }
 
   @objc func followersBtnPressed() {
@@ -332,18 +314,6 @@ class ProfileViewController: UIViewController {
   }
   
   @objc func rightBtnPressed() {
-    let editVC = UIHostingController(rootView: EditProfileView())
-    editVC.modalPresentationStyle = .pageSheet
-    editVC.navigationItem.title = "Edit Profile"
-
-    if #available(iOS 15.0, *) {
-      present(editVC, animated: true, completion: nil)
-    } else {
-      navigationController?.pushViewController(editVC, animated: true)
-    }
-  }
-  
-  @objc func leftBtnPressed() {
     let settingsVC = UIHostingController(rootView: SettingsView())
     settingsVC.modalPresentationStyle = .pageSheet
     settingsVC.navigationItem.title = "Settings"
@@ -354,6 +324,63 @@ class ProfileViewController: UIViewController {
       navigationController?.pushViewController(settingsVC, animated: true)
     }
   }
+  
+  @objc func leftBtnPressed() {
+    let editVC = UIHostingController(rootView: EditProfileView(user: user, profilePictureModel: profilePictureModel))
+    editVC.modalPresentationStyle = .pageSheet
+    editVC.navigationItem.title = "Edit Profile"
+    editVC.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(saveEditBtn))
+    if #available(iOS 15.0, *) {
+      present(editVC, animated: true, completion: nil)
+    } else {
+      navigationController?.pushViewController(editVC, animated: true)
+    }
+  }
+  
+  @objc func saveEditBtn() {
+    // user hasn't changed profile image
+    if profilePictureModel.profileImage.pngData() == UIImage(systemName: "person.crop.circle.fill")?.pngData() {
+      
+    } else {
+      profilePictureModel.newProfileChange = true
+      profilePictureModel.registerNewChange()
+      repository.uploadProfilePicture(image: profilePictureModel.profileImage)
+    }
+    navigationController?.popViewController(animated: true)
+  }
+}
+
+class ProfilePictureModel: ObservableObject {
+  @Published var profileImage = UIImage()
+  @Published var newProfileChange = false
+  var imgView = UIImageView()
+  var user: User!
+  
+  init(user: User, profileImage: UIImage, imgView: UIImageView) {
+    if user.profileImageUrl != nil {
+      imgView.sd_setImage(with: URL(string: user.profileImageUrl!), completed: { [self]
+        downloadedImage, error, cacheType, url in
+        if let error = error {
+          print("error downloading image: \(error.localizedDescription)")
+          self.profileImage = profileImage.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
+        }
+        else {
+          print("successfully downloaded: \(String(describing: url))")
+          self.profileImage = downloadedImage!
+        }
+      })
+  
+    } else {
+      self.profileImage = profileImage.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
+    }
+    self.user = user
+    self.imgView = imgView
+  }
+  
+  func registerNewChange() {
+    self.profileImage = profileImage.croppedImage(withFrame: CGRect(x: 0, y: 0, width: profileImage.size.width, height: profileImage.size.height), angle: 0, circularClip: true)
+    self.newProfileChange = false
+  }
 }
 
 extension UIView {
@@ -361,10 +388,8 @@ extension UIView {
     self.addSubview(subview)
     subview.translatesAutoresizingMaskIntoConstraints = false
     NSLayoutConstraint.activate([
-//      subview.topAnchor.constraint(equalTo: self.topAnchor),
       subview.leadingAnchor.constraint(equalTo: self.leadingAnchor),
       subview.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-//      subview.bottomAnchor.constraint(equalTo: self.bottomAnchor)
     ])
   }
 }

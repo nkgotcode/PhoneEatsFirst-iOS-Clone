@@ -27,6 +27,9 @@ class ReviewViewController: UIViewController {
   var additionalComment: UILabel!
   var menuBtn: UIButton!
   var tagObjects: [ReviewTag]!
+  var profilePictureModel: ProfilePictureModel!
+  var profileVC: ProfileViewController!
+  var userDetailHStack: UIStackView!
   
   init(review: Review, tagObjects: [ReviewTag]) {
     self.review = review
@@ -40,7 +43,8 @@ class ReviewViewController: UIViewController {
   
   override func viewDidLoad() {
     user = repository.getUser(id: review.userId)
-    profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill"))
+    profileImageView = UIImageView()
+    profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
     profileImageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
     profileImageView.translatesAutoresizingMaskIntoConstraints = false
 //    if user.profileImageUrl != nil {
@@ -62,6 +66,8 @@ class ReviewViewController: UIViewController {
     userLabel = UILabel()
     userLabel.text = user.username
     userLabel.textColor = .systemPink
+    userLabel.font = userLabel.font.bold
+    userLabel.font = userLabel.font.withSize(17)
     userLabel.translatesAutoresizingMaskIntoConstraints = false
     
     menuBtn = UIButton()
@@ -70,7 +76,7 @@ class ReviewViewController: UIViewController {
     menuBtn.setContentHuggingPriority(.required, for: .horizontal)
     menuBtn.translatesAutoresizingMaskIntoConstraints = false
     
-    let userDetailHStack = UIStackView()
+    userDetailHStack = UIStackView()
     userDetailHStack.axis = .horizontal
     userDetailHStack.alignment = .center
     userDetailHStack.distribution = .equalCentering
@@ -86,34 +92,31 @@ class ReviewViewController: UIViewController {
     let business = repository.getBusiness(id: review.businessId)
     restaurantLabel = UILabel()
     restaurantLabel.text = business?.name
-//    restaurantLabel.textColor = .white
-//    let fd = UIFontDescriptor.SymbolicTraits(rawValue: )
-//    restaurantLabel.font = UIFont(descriptor: UIFontDescriptor.SymbolicTraits.traitItalic, size: 12)
     restaurantLabel.font = restaurantLabel.font.withSize(12)
+    restaurantLabel.font = restaurantLabel.font.italic
     restaurantLabel.translatesAutoresizingMaskIntoConstraints = false
     
     addressLabel = UILabel()
     addressLabel.text = business?.address
-//    addressLabel.textColor = .white
-//    addressLabel.font = UIFont(descriptor: UIFontDescriptor.SymbolicTraits.traitItalic, size: 12)
-    addressLabel.font = addressLabel.font.withSize(10)
+    addressLabel.font = addressLabel.font.withSize(12)
+    addressLabel.font = addressLabel.font.italic
     addressLabel.translatesAutoresizingMaskIntoConstraints = false
     
     priceLabel = UILabel()
     priceLabel.text = String(repeating: "$", count: (business?.price)!)
-//    priceLabel.textColor = .white
-    priceLabel.font = priceLabel.font.withSize(10)
+    priceLabel.font = priceLabel.font.withSize(12)
     priceLabel.translatesAutoresizingMaskIntoConstraints = false
     
     ratingLabel = UILabel()
     let attachment = NSAttributedString(attachment: NSTextAttachment(image: UIImage(systemName: "star.fill")!))
+    
     let completeText = NSMutableAttributedString(string: "")
     completeText.append(attachment)
     completeText.append(NSAttributedString(string: String(format: "%.2f", business?.stars as! CVarArg)))
     ratingLabel.textAlignment = .center
     ratingLabel.attributedText = completeText
-    ratingLabel.font = ratingLabel.font.withSize(10)
-//    ratingLabel.text = String(format: "%.4f", business?.stars as! CVarArg)
+    ratingLabel.font = ratingLabel.font.withSize(13)
+    ratingLabel.translatesAutoresizingMaskIntoConstraints = false
     ratingLabel.textColor = .systemPink
     
     let reviewDetailHStack = UIStackView()
@@ -149,16 +152,19 @@ class ReviewViewController: UIViewController {
     likeBtn.setImage(UIImage(systemName: "heart"), for: .normal)
     likeBtn.tintColor = .systemPink
     likeBtn.translatesAutoresizingMaskIntoConstraints = false
+    likeBtn.addTarget(self, action: #selector(likeBtnPressed), for: .touchUpInside)
     
     commentBtn = UIButton()
     commentBtn.setImage(UIImage(systemName: "bubble.right"), for: .normal)
     commentBtn.tintColor = .systemPink
     commentBtn.translatesAutoresizingMaskIntoConstraints = false
+    commentBtn.addTarget(self, action: #selector(commentBtnPressed), for: .touchUpInside)
     
     bookmarkBtn = UIButton()
     bookmarkBtn.setImage(UIImage(systemName: "bookmark"), for: .normal)
     bookmarkBtn.tintColor = .systemPink
     bookmarkBtn.translatesAutoresizingMaskIntoConstraints = false
+    bookmarkBtn.addTarget(self, action: #selector(bookmarkBtnPressed), for: .touchUpInside)
     
     let imageAndActionVStack = UIStackView()
     imageAndActionVStack.axis = .vertical
@@ -193,7 +199,26 @@ class ReviewViewController: UIViewController {
       reviewDetailHStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       reviewDetailHStack.heightAnchor.constraint(equalToConstant: 24),
       
-      imageAndActionVStack.topAnchor.constraint(equalTo: reviewDetailHStack.bottomAnchor),
+      restaurantLabel.topAnchor.constraint(equalTo: reviewDetailHStack.topAnchor),
+      restaurantLabel.bottomAnchor.constraint(equalTo: reviewDetailHStack.bottomAnchor),
+      restaurantLabel.leadingAnchor.constraint(equalTo: reviewDetailHStack.leadingAnchor),
+      restaurantLabel.trailingAnchor.constraint(equalTo: priceLabel.leadingAnchor),
+      
+      priceLabel.topAnchor.constraint(equalTo: reviewDetailHStack.topAnchor),
+      priceLabel.bottomAnchor.constraint(equalTo: reviewDetailHStack.bottomAnchor),
+      priceLabel.trailingAnchor.constraint(equalTo: ratingLabel.leadingAnchor),
+      priceLabel.widthAnchor.constraint(equalToConstant: 40),
+      
+      ratingLabel.topAnchor.constraint(equalTo: reviewDetailHStack.topAnchor),
+      ratingLabel.bottomAnchor.constraint(equalTo: reviewDetailHStack.bottomAnchor),
+      ratingLabel.trailingAnchor.constraint(equalTo: addressLabel.leadingAnchor),
+      
+      addressLabel.topAnchor.constraint(equalTo: reviewDetailHStack.topAnchor),
+      addressLabel.bottomAnchor.constraint(equalTo: reviewDetailHStack.bottomAnchor),
+      addressLabel.leadingAnchor.constraint(equalTo: ratingLabel.trailingAnchor),
+      addressLabel.trailingAnchor.constraint(equalTo: reviewDetailHStack.trailingAnchor),
+      
+      imageAndActionVStack.topAnchor.constraint(equalTo: reviewDetailHStack.bottomAnchor, constant: 8),
       imageAndActionVStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       imageAndActionVStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       
@@ -209,7 +234,6 @@ class ReviewViewController: UIViewController {
       
       profileImageView.leadingAnchor.constraint(equalTo: userDetailHStack.leadingAnchor),
       profileImageView.topAnchor.constraint(equalTo: userDetailHStack.topAnchor),
-//      profileImageView.widthAnchor.constraint(equalToConstant: 100),
       profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
       
       userLabel.topAnchor.constraint(equalTo: userDetailHStack.topAnchor),
@@ -220,8 +244,22 @@ class ReviewViewController: UIViewController {
       menuBtn.bottomAnchor.constraint(equalTo: userDetailHStack.bottomAnchor),
       menuBtn.trailingAnchor.constraint(equalTo: userDetailHStack.trailingAnchor),
       
-//      restaurantLabel.widthAnchor.constraint(equalToConstant: 100)
+      restaurantLabel.widthAnchor.constraint(equalToConstant: 120),
     ])
+  }
+  
+  @objc func likeBtnPressed() {
+    
+  }
+  
+  @objc func commentBtnPressed() {
+    let commentVC = CommentViewController()
+    commentVC.review = review
+    navigationController?.pushViewController(commentVC, animated: true)
+  }
+  
+  @objc func bookmarkBtnPressed() {
+    
   }
 }
 
