@@ -142,9 +142,6 @@ extension HomeViewController: UICollectionViewDelegate {
     feedReviewVC.profilePictureModel = profilePictureModel
     let reviewVC = ReviewViewController(review: review!, tagObjects: tags)
     reviewVC.profilePictureModel = profilePictureModel
-    
-//    reviewVC.modalPresentationStyle = .pageSheet
-//    reviewVC.view.frame = UIScreen.main.bounds
 
     if #available(iOS 15.0, *) {
       navigationController?.present(reviewVC, animated: true, completion: nil)

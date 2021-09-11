@@ -332,6 +332,10 @@ final class DataRepository: ObservableObject {
     firestore.collection(userPath).document(user!.id).updateData(["following": user?.following])
   }
   
+  func uploadComment(comment: Comment, review: Review) {
+    
+  }
+  
   func uploadProfilePicture(image: UIImage) {
     var picURL: URL?
     let storageRef = storage.reference()

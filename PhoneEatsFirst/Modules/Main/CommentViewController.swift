@@ -45,6 +45,7 @@ class CommentViewController: UIViewController {
     commentField.layer.masksToBounds = true
     commentField.textAlignment = .left
     commentField.textColor = .systemPink
+    commentField.delegate = self
     commentField.translatesAutoresizingMaskIntoConstraints = false
     
     let commentTable = UITableViewCell()
@@ -228,6 +229,18 @@ class CommentCell: UITableViewCell {
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+extension CommentViewController: UITextFieldDelegate {
+  func textFieldDidEndEditing(_ textField: UITextField) {
+    if textField.text == "" {
+      return
+    } else {
+      let commentID = repository.firestore.collection(repository.commentPath).document(review.id!).documentID
+      let comment = Comment(id: commentID, comment: textField.text!, uid: repository.user!.id, creationDate: nil)
+      repository.uploadComment(comment: comment, review: review)
+    }
   }
 }
 

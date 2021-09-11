@@ -36,12 +36,27 @@ class ProfileViewController: UIViewController {
     scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
     view.addSubview(scrollView)
     
-    profileImageView = UIImageView()
-    if profilePictureModel == nil {
-      self.profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
-    } else {
-      profileImageView = profilePictureModel.imgView
-    }
+    profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate))
+//    if profilePictureModel == nil {
+//      self.profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
+//    } else {
+//      profileImageView = profilePictureModel.imgView
+//    }
+    profileImageView.sd_setImage(with: URL(string: user.profileImageUrl!), completed: {
+      [self]
+      downloadedImage, error, cacheType, url in
+      if let error = error {
+        print("error downloading image: \(error.localizedDescription)")
+        profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
+
+      }
+      else {
+        print("successfully downloaded: \(String(describing: url))")
+        profileImageView.image = downloadedImage!
+      }
+    })
+    profilePictureModel = ProfilePictureModel(user: user, profileImage: profileImageView.image!, imgView: profileImageView)
+    
     profileImageView.frame = CGRect(x: 0, y: 0, width: 120, height: 120)
     profileImageView.contentMode = .scaleAspectFit
     profileImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -113,7 +128,8 @@ class ProfileViewController: UIViewController {
     followHStack.addArrangedSubview(followingVStack)
     
     bio = UITextView()
-    bio.text = "This is the bio"
+    bio.text = "Bio"
+    bio.font = bio.font?.withSize(12)
     bio.isEditable = false
     bio.isSelectable = false
     bio.translatesAutoresizingMaskIntoConstraints = false
@@ -195,7 +211,6 @@ class ProfileViewController: UIViewController {
     reviewsVStack.distribution = .equalSpacing
     reviewsVStack.axis = .vertical
     reviewsVStack.alignment = .center
-//    reviewsVStack.backgroundColor = .purple
     reviewsVStack.frame = CGRect(x: 0, y: 0, width: 300, height: 100)
     reviewsVStack.translatesAutoresizingMaskIntoConstraints = false
     scrollView.addSubview(reviewsVStack)
@@ -215,18 +230,18 @@ class ProfileViewController: UIViewController {
     NSLayoutConstraint.activate([
       scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
       scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-      scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-      scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+      scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       scrollView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor),
       
-      buttonsHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-      buttonsHStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+      buttonsHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -8),
+      buttonsHStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
       buttonsHStack.topAnchor.constraint(equalTo: displayName.bottomAnchor, constant: 16),
 
       buttonsHStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
       buttonsHStack.heightAnchor.constraint(equalToConstant: 50),
 
-      followHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      followHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -8),
       followHStack.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 32),
       followHStack.bottomAnchor.constraint(lessThanOrEqualTo: bio.topAnchor),
       followHStack.heightAnchor.constraint(equalToConstant: 60),
@@ -238,26 +253,26 @@ class ProfileViewController: UIViewController {
       followersVStack.trailingAnchor.constraint(equalTo: followingVStack.leadingAnchor, constant: -2),
       followersVStack.widthAnchor.constraint(equalTo: followingVStack.widthAnchor),
       
-      followingVStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      followingVStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -8),
       
       bio.topAnchor.constraint(equalTo: followersVStack.bottomAnchor, constant: 8),
       bio.bottomAnchor.constraint(equalTo: buttonsHStack.topAnchor, constant: -16),
       bio.leadingAnchor.constraint(equalTo: followHStack.leadingAnchor),
-      bio.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      bio.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -8),
       
 
       profileImageView.widthAnchor.constraint(equalToConstant: 100),
       profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
       profileImageView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 8),
-      profileImageView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+      profileImageView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
       
       userLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 1),
-      userLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 4),
+      userLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
       userLabel.widthAnchor.constraint(equalToConstant: 150),
       userLabel.heightAnchor.constraint(equalToConstant: 30),
       
       displayName.topAnchor.constraint(equalTo: userLabel.bottomAnchor, constant: 4),
-      displayName.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 4),
+      displayName.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
       displayName.widthAnchor.constraint(equalToConstant: 150),
       displayName.heightAnchor.constraint(equalToConstant: 40),
       
@@ -271,7 +286,6 @@ class ProfileViewController: UIViewController {
       reviewsVStack.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor),
       reviewsVStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
       reviewsVStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-      reviewsVStack.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
       reviewsVStack.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
     ])
   }
@@ -365,7 +379,6 @@ class ProfilePictureModel: ObservableObject {
         downloadedImage, error, cacheType, url in
         if let error = error {
           print("error downloading image: \(error.localizedDescription)")
-//          self.profileImage = profileImage
         }
         else {
           print("successfully downloaded: \(String(describing: url))")

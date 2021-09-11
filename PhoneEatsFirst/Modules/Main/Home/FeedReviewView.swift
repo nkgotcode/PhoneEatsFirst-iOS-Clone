@@ -44,10 +44,10 @@ class FeedReviewView: UIViewController {
       scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
       scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
       
-      reviewView.view.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 4),
+      reviewView.view.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
       reviewView.view.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-      reviewView.view.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-      reviewView.view.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+      reviewView.view.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
+      reviewView.view.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -8),
       reviewView.view.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
       reviewView.view.heightAnchor.constraint(lessThanOrEqualTo: scrollView.heightAnchor),
       

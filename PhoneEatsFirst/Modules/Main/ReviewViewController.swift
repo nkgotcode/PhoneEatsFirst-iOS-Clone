@@ -16,6 +16,7 @@ class ReviewViewController: UIViewController {
   var review: Review!
   var profileImageView: UIImageView!
   var userLabel: UILabel!
+  var profileBtn: UIButton!
   var restaurantLabel: UILabel!
   var priceLabel: UILabel!
   var ratingLabel: UILabel!
@@ -45,25 +46,25 @@ class ReviewViewController: UIViewController {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
     user = repository.getUser(id: review.userId)
-    profileImageView = UIImageView()
-    profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
+    profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate))
+
+    profileImageView.sd_setImage(with: URL(string: user.profileImageUrl!), completed: {
+      [self]
+      downloadedImage, error, cacheType, url in
+      if let error = error {
+        print("error downloading image: \(error.localizedDescription)")
+        profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
+
+      }
+      else {
+        print("successfully downloaded: \(String(describing: url))")
+        profileImageView.image = downloadedImage!
+      }
+    })
+//    profilePictureModel = ProfilePictureModel(user: user, profileImage: profileImageView.image!, imgView: profileImageView)
     profileImageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
     profileImageView.translatesAutoresizingMaskIntoConstraints = false
-//    if user.profileImageUrl != nil {
-//      profileImageView.sd_setImage(with: URL(string: user.profileImageUrl!), completed: { [self]
-//        downloadedImage, error, cacheType, url in
-//        if let error = error {
-//          print("error downloading image: \(error.localizedDescription)")
-//          profileImageView = UIImageView(image: UIImage(named: "person.crop.circle.fill"))
-//          profileImageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
-//          profileImageView.contentMode = .scaleAspectFit
-//          print("placeholder profile image")
-//        }
-//        else {
-//          print("successfully downloaded: \(String(describing: url))")
-//        }
-//      })
-//    }
+    profileImageView.isUserInteractionEnabled = true
     
     userLabel = UILabel()
     userLabel.text = user.username
@@ -71,6 +72,14 @@ class ReviewViewController: UIViewController {
     userLabel.font = userLabel.font.bold
     userLabel.font = userLabel.font.withSize(17)
     userLabel.translatesAutoresizingMaskIntoConstraints = false
+    userLabel.isUserInteractionEnabled = true
+    
+    profileBtn = UIButton()
+    profileBtn.isUserInteractionEnabled = true
+    profileBtn.translatesAutoresizingMaskIntoConstraints = false
+    profileBtn.addTarget(self, action: #selector(profileBtnPressed), for: .touchUpInside)
+    profileImageView.addSubview(profileBtn)
+    userLabel.addSubview(profileBtn)
     
     menuBtn = UIButton()
     menuBtn.frame = CGRect(x: 0, y: 0, width: 70, height: 70)
@@ -88,6 +97,7 @@ class ReviewViewController: UIViewController {
     
     userDetailHStack.addArrangedSubview(profileImageView)
     userDetailHStack.addArrangedSubview(userLabel)
+//    userDetailHStack.addArrangedSubview(profileBtn)
     userDetailHStack.addArrangedSubview(menuBtn)
     view.addSubview(userDetailHStack)
     
@@ -212,13 +222,13 @@ class ReviewViewController: UIViewController {
     
     NSLayoutConstraint.activate([
       userDetailHStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
-      userDetailHStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      userDetailHStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      userDetailHStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+      userDetailHStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
       userDetailHStack.heightAnchor.constraint(equalToConstant: 40),
       
       reviewDetailHStack.topAnchor.constraint(equalTo: userDetailHStack.bottomAnchor),
-      reviewDetailHStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      reviewDetailHStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      reviewDetailHStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+      reviewDetailHStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
       reviewDetailHStack.heightAnchor.constraint(equalToConstant: 24),
       
       restaurantLabel.topAnchor.constraint(equalTo: reviewDetailHStack.topAnchor),
@@ -241,8 +251,8 @@ class ReviewViewController: UIViewController {
       addressLabel.trailingAnchor.constraint(equalTo: reviewDetailHStack.trailingAnchor),
       
       imageAndActionVStack.topAnchor.constraint(equalTo: reviewDetailHStack.bottomAnchor, constant: 8),
-      imageAndActionVStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      imageAndActionVStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      imageAndActionVStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+      imageAndActionVStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
       
       postImageView.leadingAnchor.constraint(equalTo: imageAndActionVStack.leadingAnchor),
       postImageView.trailingAnchor.constraint(equalTo: imageAndActionVStack.trailingAnchor),
@@ -260,11 +270,19 @@ class ReviewViewController: UIViewController {
       
       userLabel.topAnchor.constraint(equalTo: userDetailHStack.topAnchor),
       userLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 4),
-      userLabel.trailingAnchor.constraint(equalTo: menuBtn.leadingAnchor, constant: -64),
+      
+      profileBtn.topAnchor.constraint(equalTo: profileImageView.topAnchor),
+      profileBtn.leadingAnchor.constraint(equalTo: profileImageView.leadingAnchor),
+      profileBtn.bottomAnchor.constraint(equalTo: profileImageView.bottomAnchor),
+      profileBtn.trailingAnchor.constraint(equalTo: userLabel.trailingAnchor),
+      profileBtn.heightAnchor.constraint(equalTo: profileImageView.heightAnchor),
       
       menuBtn.topAnchor.constraint(equalTo: userDetailHStack.topAnchor),
       menuBtn.bottomAnchor.constraint(equalTo: userDetailHStack.bottomAnchor),
       menuBtn.trailingAnchor.constraint(equalTo: userDetailHStack.trailingAnchor),
+      menuBtn.leadingAnchor.constraint(equalTo: userLabel.trailingAnchor),
+      menuBtn.widthAnchor.constraint(equalToConstant: 40),
+      menuBtn.heightAnchor.constraint(equalTo: menuBtn.widthAnchor),
       
       restaurantLabel.widthAnchor.constraint(equalToConstant: 120),
       
@@ -273,13 +291,22 @@ class ReviewViewController: UIViewController {
       bookmarkBtn.heightAnchor.constraint(equalToConstant: 40),
       
       cmtUserLabel.topAnchor.constraint(equalTo: actionHStack.bottomAnchor, constant: 4),
-      cmtUserLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2),
+      cmtUserLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
 
       commentLabel.leadingAnchor.constraint(equalTo: cmtUserLabel.trailingAnchor, constant: 4),
-      commentLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      commentLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
       commentLabel.topAnchor.constraint(equalTo: actionHStack.bottomAnchor, constant: 4),
       commentLabel.centerYAnchor.constraint(equalTo: cmtUserLabel.centerYAnchor),
     ])
+  }
+  
+  @objc func profileBtnPressed() {
+    print("profileBtnPressed")
+    if repository.user!.id != user.id {
+      let profileVC = ProfileViewController()
+      profileVC.user = user
+      navigationController?.pushViewController(profileVC, animated: true)
+    }
   }
   
   @objc func likeBtnPressed() {
