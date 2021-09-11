@@ -27,13 +27,19 @@ struct EditProfileView: View {
   @State var bio: String = "" // TODO: fetch from DataRepository
   @State var profileImage = UIImage() // TODO:
 
+//  init(_ name: String, _ bio: String, _ profileImage: UIImage) {
+//    self.name = user.firstName + " " + user.lastName
+//    self.bio = user.bio!
+//    self.profileImage = profilePictureModel.profileImage!
+//  }
+  
   var body: some View {
     NavigationView {
       VStack () {
         Button {
           presentingPhotoLibrary = true
         } label: {
-            Image(uiImage: profilePictureModel.profileImage)
+          Image(uiImage: profilePictureModel.profileImage)
               .resizable()
               .scaledToFill()
               .frame(width: 80, height: 80, alignment: .center)

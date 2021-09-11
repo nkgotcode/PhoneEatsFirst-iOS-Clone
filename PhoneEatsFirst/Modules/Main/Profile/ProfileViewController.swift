@@ -28,6 +28,7 @@ class ProfileViewController: UIViewController {
   var profilePictureModel: ProfilePictureModel!
   
   override func viewDidLoad() {
+    view.backgroundColor = .systemBackground
     scrollView = UIScrollView(frame: view.safeAreaLayoutGuide.layoutFrame)
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.isScrollEnabled = true
@@ -205,6 +206,8 @@ class ProfileViewController: UIViewController {
       let tagObjects = repository.getTagObjects(reviewID: reviewID)
       let reviewView = ReviewViewController(review: review!, tagObjects: tagObjects)
       reviewView.profileVC = self
+      addChild(reviewView)
+      reviewView.didMove(toParent: self)
       reviewsVStack.addArrangedSubview(reviewView.view)
       reviewsVStack.addConstraintsSubView(subview: reviewView.view)
     }
@@ -351,7 +354,7 @@ class ProfileViewController: UIViewController {
 }
 
 class ProfilePictureModel: ObservableObject {
-  @Published var profileImage = UIImage()
+  @Published var profileImage = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
   @Published var newProfileChange = false
   var imgView = UIImageView()
   var user: User!
@@ -362,7 +365,7 @@ class ProfilePictureModel: ObservableObject {
         downloadedImage, error, cacheType, url in
         if let error = error {
           print("error downloading image: \(error.localizedDescription)")
-          self.profileImage = profileImage.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
+//          self.profileImage = profileImage
         }
         else {
           print("successfully downloaded: \(String(describing: url))")

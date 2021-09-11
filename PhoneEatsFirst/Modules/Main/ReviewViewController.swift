@@ -42,6 +42,8 @@ class ReviewViewController: UIViewController {
   }
   
   override func viewDidLoad() {
+    super.viewDidLoad()
+    view.backgroundColor = .systemBackground
     user = repository.getUser(id: review.userId)
     profileImageView = UIImageView()
     profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
@@ -115,7 +117,7 @@ class ReviewViewController: UIViewController {
     completeText.append(NSAttributedString(string: String(format: "%.2f", business?.stars as! CVarArg)))
     ratingLabel.textAlignment = .center
     ratingLabel.attributedText = completeText
-    ratingLabel.font = ratingLabel.font.withSize(13)
+    ratingLabel.font = ratingLabel.font.withSize(12)
     ratingLabel.translatesAutoresizingMaskIntoConstraints = false
     ratingLabel.textColor = .systemPink
     
@@ -150,6 +152,7 @@ class ReviewViewController: UIViewController {
     
     likeBtn = UIButton()
     likeBtn.setImage(UIImage(systemName: "heart"), for: .normal)
+    likeBtn.contentMode = .scaleAspectFit
     likeBtn.tintColor = .systemPink
     likeBtn.translatesAutoresizingMaskIntoConstraints = false
     likeBtn.addTarget(self, action: #selector(likeBtnPressed), for: .touchUpInside)
@@ -157,12 +160,14 @@ class ReviewViewController: UIViewController {
     commentBtn = UIButton()
     commentBtn.setImage(UIImage(systemName: "bubble.right"), for: .normal)
     commentBtn.tintColor = .systemPink
+    commentBtn.contentMode = .scaleAspectFit
     commentBtn.translatesAutoresizingMaskIntoConstraints = false
     commentBtn.addTarget(self, action: #selector(commentBtnPressed), for: .touchUpInside)
     
     bookmarkBtn = UIButton()
     bookmarkBtn.setImage(UIImage(systemName: "bookmark"), for: .normal)
     bookmarkBtn.tintColor = .systemPink
+    bookmarkBtn.contentMode = .scaleAspectFit
     bookmarkBtn.translatesAutoresizingMaskIntoConstraints = false
     bookmarkBtn.addTarget(self, action: #selector(bookmarkBtnPressed), for: .touchUpInside)
     
@@ -188,8 +193,25 @@ class ReviewViewController: UIViewController {
     imageAndActionVStack.addArrangedSubview(actionHStack)
     view.addSubview(imageAndActionVStack)
     
+    let cmtUserLabel = UILabel()
+    cmtUserLabel.text = user.username
+    cmtUserLabel.textColor = .systemPink
+    cmtUserLabel.font = cmtUserLabel.font.bold
+    cmtUserLabel.font = cmtUserLabel.font.withSize(13)
+    cmtUserLabel.textAlignment = .center
+    cmtUserLabel.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(cmtUserLabel)
+    
+    let commentLabel = UILabel()
+    commentLabel.translatesAutoresizingMaskIntoConstraints = false
+    commentLabel.text = review.additionalComment
+    commentLabel.font = commentLabel.font.withSize(13)
+    commentLabel.numberOfLines = 2
+    commentLabel.textAlignment = .left
+    view.addSubview(commentLabel)
+    
     NSLayoutConstraint.activate([
-      userDetailHStack.topAnchor.constraint(equalTo: view.topAnchor),
+      userDetailHStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
       userDetailHStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       userDetailHStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       userDetailHStack.heightAnchor.constraint(equalToConstant: 40),
@@ -227,7 +249,7 @@ class ReviewViewController: UIViewController {
       postImageView.topAnchor.constraint(equalTo: imageAndActionVStack.topAnchor),
       postImageView.widthAnchor.constraint(equalTo: postImageView.heightAnchor),
       
-      actionHStack.topAnchor.constraint(equalTo: postImageView.bottomAnchor),
+      actionHStack.topAnchor.constraint(equalTo: postImageView.bottomAnchor, constant: 8),
       actionHStack.leadingAnchor.constraint(equalTo: imageAndActionVStack.leadingAnchor),
       actionHStack.trailingAnchor.constraint(equalTo: imageAndActionVStack.trailingAnchor),
       actionHStack.heightAnchor.constraint(equalToConstant: 40),
@@ -245,21 +267,34 @@ class ReviewViewController: UIViewController {
       menuBtn.trailingAnchor.constraint(equalTo: userDetailHStack.trailingAnchor),
       
       restaurantLabel.widthAnchor.constraint(equalToConstant: 120),
+      
+      likeBtn.heightAnchor.constraint(equalToConstant: 40),
+      commentBtn.heightAnchor.constraint(equalToConstant: 40),
+      bookmarkBtn.heightAnchor.constraint(equalToConstant: 40),
+      
+      cmtUserLabel.topAnchor.constraint(equalTo: actionHStack.bottomAnchor, constant: 4),
+      cmtUserLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2),
+
+      commentLabel.leadingAnchor.constraint(equalTo: cmtUserLabel.trailingAnchor, constant: 4),
+      commentLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      commentLabel.topAnchor.constraint(equalTo: actionHStack.bottomAnchor, constant: 4),
+      commentLabel.centerYAnchor.constraint(equalTo: cmtUserLabel.centerYAnchor),
     ])
   }
   
   @objc func likeBtnPressed() {
-    
+    print("likeBtnPressed")
   }
   
   @objc func commentBtnPressed() {
     let commentVC = CommentViewController()
     commentVC.review = review
     navigationController?.pushViewController(commentVC, animated: true)
+    print("comment button pressed")
   }
   
   @objc func bookmarkBtnPressed() {
-    
+    print("bookmarkBtnPressed")
   }
 }
 

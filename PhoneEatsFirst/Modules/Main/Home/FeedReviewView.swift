@@ -28,6 +28,8 @@ class FeedReviewView: UIViewController {
     reviewView.profilePictureModel = profilePictureModel
     reviewView.preferredContentSize = CGSize(width: 400, height: view.frame.height)
     reviewView.view.translatesAutoresizingMaskIntoConstraints = false
+    addChild(reviewView)
+    reviewView.didMove(toParent: self)
     scrollView.addSubview(reviewView.view)
     
     let profileBtn = UIButton()

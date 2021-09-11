@@ -13,8 +13,13 @@ class CommentViewController: UIViewController {
   @Injected private var repository: DataRepository
   var review: Review!
   var comments: [Comment]!
+  var commentField: UITextField!
+  var commentBtn: UIButton!
+  // This constraint ties an element at zero points from the bottom layout guide
+   @IBOutlet var keyboardHeightLayoutConstraint: NSLayoutConstraint?
   
   override func viewDidLoad() {
+    super.viewDidLoad()
     self.comments = repository.getComments(commentIDs: review.comments)
     let tv = UITableView()
     tv.translatesAutoresizingMaskIntoConstraints = false
@@ -23,14 +28,93 @@ class CommentViewController: UIViewController {
     tv.register(CommentCell.self, forCellReuseIdentifier: "comment")
     tv.tableFooterView = UIView(frame: .zero)
     tv.isUserInteractionEnabled = false
+    tv.isScrollEnabled = true
     view.addSubview(tv)
+    
+    commentBtn = UIButton()
+    commentBtn.setImage(UIImage(systemName: "arrow.up.circle"), for: .normal)
+    commentBtn.tintColor = .systemPink
+    commentBtn.contentMode = .scaleAspectFit
+    commentBtn.translatesAutoresizingMaskIntoConstraints = false
+    
+    commentField = CustomCommentField()
+    commentField.placeholder = "Leave a comment.."
+    commentField.layer.borderColor = UIColor.systemPink.cgColor
+    commentField.layer.borderWidth = 3
+    commentField.layer.cornerRadius = 10
+    commentField.layer.masksToBounds = true
+    commentField.textAlignment = .left
+    commentField.textColor = .systemPink
+    commentField.translatesAutoresizingMaskIntoConstraints = false
+    
+    let commentTable = UITableViewCell()
+    commentTable.selectionStyle = .none
+    commentTable.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(commentTable)
+    commentTable.addSubview(commentField)
+    commentTable.addSubview(commentBtn)
+    
+    let scrollGesture = UIGestureRecognizer(target: self, action: #selector(hideKeyboardScroll))
+    view.addGestureRecognizer(scrollGesture)
     
     NSLayoutConstraint.activate([
       tv.topAnchor.constraint(equalTo: view.topAnchor),
       tv.bottomAnchor.constraint(equalTo: view.bottomAnchor),
       tv.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       tv.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      
+      commentTable.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      commentTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2),
+      commentTable.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      commentTable.heightAnchor.constraint(equalToConstant: 50),
+      
+      commentField.topAnchor.constraint(equalTo: commentTable.topAnchor),
+      commentField.bottomAnchor.constraint(equalTo: commentTable.bottomAnchor),
+      commentField.leadingAnchor.constraint(equalTo: commentTable.leadingAnchor),
+      commentField.trailingAnchor.constraint(equalTo: commentBtn.leadingAnchor),
+      
+      commentBtn.topAnchor.constraint(equalTo: commentTable.topAnchor),
+      commentBtn.bottomAnchor.constraint(equalTo: commentTable.bottomAnchor),
+      commentBtn.trailingAnchor.constraint(equalTo: commentTable.trailingAnchor),
+      commentBtn.widthAnchor.constraint(equalToConstant: 50)
+      
     ])
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    commentField.textRect(forBounds: commentField.bounds)
+    commentField.editingRect(forBounds: commentField.bounds)
+    commentField.becomeFirstResponder()
+    NotificationCenter.default.addObserver(self, selector: #selector(CommentViewController.showKeyboardNotification(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+  }
+  
+  @objc func hideKeyboardScroll() {
+    commentField.resignFirstResponder()
+  }
+  
+  @objc func showKeyboardNotification(notification: NSNotification) {
+    guard let userInfo = notification.userInfo else { return }
+
+     let endFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
+     let endFrameY = endFrame?.origin.y ?? 0
+     let duration:TimeInterval = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
+     let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
+     let animationCurveRaw = animationCurveRawNSN?.uintValue ?? UIView.AnimationOptions.curveEaseInOut.rawValue
+     let animationCurve:UIView.AnimationOptions = UIView.AnimationOptions(rawValue: animationCurveRaw)
+
+     if endFrameY >= UIScreen.main.bounds.size.height {
+       self.keyboardHeightLayoutConstraint?.constant = 0.0
+     } else {
+       self.keyboardHeightLayoutConstraint?.constant = endFrame?.size.height ?? 0.0
+     }
+
+     UIView.animate(
+       withDuration: duration,
+       delay: TimeInterval(0),
+       options: animationCurve,
+       animations: { self.view.layoutIfNeeded() },
+       completion: nil)
   }
 }
 
@@ -134,16 +218,27 @@ class CommentCell: UITableViewCell {
       userLabel.bottomAnchor.constraint(equalTo: comment.topAnchor),
       userLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8),
       
-      
-      comment.bottomAnchor.constraint(equalTo: timestamp.topAnchor),
       comment.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8),
       
       timestamp.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8),
-      timestamp.bottomAnchor.constraint(equalTo: bottomAnchor),
+      timestamp.topAnchor.constraint(equalTo: comment.bottomAnchor, constant: 4),
+      timestamp.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -2),
     ])
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+}
+
+class CustomCommentField: UITextField {
+  // placeholder position
+  override func textRect(forBounds bounds: CGRect) -> CGRect {
+    return bounds.insetBy(dx: 10, dy: 10)
+  }
+  // text position
+  override func editingRect(forBounds bounds: CGRect) -> CGRect {
+    return bounds.insetBy(dx: 10, dy: 10);
+  }
+  
 }
