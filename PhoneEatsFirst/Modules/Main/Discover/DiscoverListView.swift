@@ -15,6 +15,7 @@ struct DiscoverListView: View {
 
   @State private var chosenBusiness: Business? = nil
   @State private var presentingBusinessView: Bool = false
+  @State var isBookmarked: Bool!
   
   var user: User
 
@@ -81,10 +82,9 @@ struct DiscoverListView: View {
                     Button {
                       // bookmark
 //                      repository.addUserBookmark(business: business)
-                      
                       print("user bookmarked \(String(describing: business.id))")
                     } label: {
-//                      Image(systemName: "bookmark")
+                      Image(systemName: "bookmark")
 //                      Image(systemName: repository.isBookmarked(business: business) ? "bookmark.fill" : "bookmark")
                     }
                   }
@@ -106,7 +106,11 @@ struct DiscoverListView: View {
         } // ForEach
         .padding()
         .sheet(item: $chosenBusiness) { business in
-          BusinessView(business: business).accentColor(.pink)
+          if user.bookmarks.contains(business.id!) {
+            BusinessView(business: business, isBookmarked: true).accentColor(.pink)
+          } else {
+            BusinessView(business: business, isBookmarked: false).accentColor(.pink)
+          }
         }
       } // LazyVGrid
       .toolbar {

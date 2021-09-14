@@ -52,7 +52,6 @@ class HomeViewController: UIViewController {
       collectionView?.dataSource = self
       scrollView.contentSize = CGSize(width: 400, height: view.frame.height)
       scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
-//      view.addSubview(collectionView!)
       scrollView.addSubview(collectionView!)
       
       NSLayoutConstraint.activate([
@@ -60,7 +59,6 @@ class HomeViewController: UIViewController {
         scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
         scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-//        scrollView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor)
       ])
     }
   }
@@ -75,13 +73,6 @@ class HomeViewController: UIViewController {
     self.layout!.containerWidth = width
     self.layout?.display = self.view.traitCollection.horizontalSizeClass == .compact && self.view.traitCollection.verticalSizeClass == .regular ? CollectionDisplay.list : CollectionDisplay.grid(columns: 2)
   }
-  
-//  override func viewWillAppear(_ animated: Bool) {
-//    let users = repository.users
-//    for u in users {
-//      self.reviewID?.append(contentsOf: u.userReviewsID)
-//    }
-//  }
 }
 
 extension HomeViewController: UICollectionViewDelegateFlowLayout {
@@ -122,9 +113,28 @@ extension HomeViewController: UICollectionViewDataSource {
     c.backgroundView!.layer.borderColor = UIColor.clear.cgColor
     c.backgroundView!.layer.masksToBounds = true
     reviewDict[indexPath.row] = reviewID![indexPath.row]
+    
+//    let size = CGSize(width: 100.0, height: 20)
+//    let roundedView = UIView(frame: CGRect(origin: .zero, size: size))
+//    roundedView.translatesAutoresizingMaskIntoConstraints = false
+//    // Creating the layer that we'll use as a mask
+//    let mask = CAShapeLayer()
+//    // Set its frame to the view bounds
+//    mask.frame = roundedView.bounds
+//    // Build its path with a smoothed shape
+//    mask.path = UIBezierPath(roundedRect: roundedView.bounds, cornerRadius: 10.0).cgPath
+//    // Apply the mask to the view
+//    roundedView.layer.mask = mask
+//    roundedView.layer.backgroundColor = UIColor.secondarySystemBackground.cgColor
+//    c.contentView.addSubview(roundedView)
+//    
+//    NSLayoutConstraint.activate([
+//      roundedView.topAnchor.constraint(equalTo: c.contentView.topAnchor, constant: 8),
+//      roundedView.leadingAnchor.constraint(equalTo: c.contentView.leadingAnchor, constant: 16),
+//      roundedView.trailingAnchor.constraint(equalTo: c.contentView.trailingAnchor, constant: 16),
+//    ])
     return c
   }
-  
   
 }
 
@@ -135,7 +145,6 @@ extension HomeViewController: UICollectionViewDelegate {
     let tags = repository.getTagObjects(reviewID: reviewID)
     let chosenUser = repository.getUser(id: review!.userId)
     let profilePictureModel = ProfilePictureModel(user: chosenUser!, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: UIImageView())
-//    let reviewVC = UIHostingController(rootView: ReviewView(review: review!, tags: tags, dismissAction: {self.dismiss( animated: true, completion: nil )}, profilePictureModel: profilePictureModel))
     let feedReviewVC = FeedReviewView()
     feedReviewVC.review = review
     feedReviewVC.tagObjects = tags

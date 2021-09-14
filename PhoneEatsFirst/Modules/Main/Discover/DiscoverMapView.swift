@@ -103,7 +103,7 @@ extension MapViewController: MKMapViewDelegate {
   ) {
     if let annotation = view.annotation as? BusinessAnnotation {
       view.window?.rootViewController?.present(
-        UIHostingController(rootView: BusinessView(business: annotation.business)),
+        UIHostingController(rootView: BusinessView(business: annotation.business, isBookmarked: repository.isBookmarked(business: annotation.business))),
         animated: true,
         completion: nil
       )

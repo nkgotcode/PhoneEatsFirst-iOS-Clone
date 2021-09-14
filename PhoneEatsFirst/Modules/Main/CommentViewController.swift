@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import Resolver
+import FirebaseFirestore
 
 class CommentViewController: UIViewController {
   @Injected private var repository: DataRepository
@@ -15,13 +16,16 @@ class CommentViewController: UIViewController {
   var comments: [Comment]!
   var commentField: UITextField!
   var commentBtn: UIButton!
+  var tv: UITableView!
+  var listener: ListenerRegistration!
+  var openTextBtn: UIButton!
   // This constraint ties an element at zero points from the bottom layout guide
    @IBOutlet var keyboardHeightLayoutConstraint: NSLayoutConstraint?
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.comments = repository.getComments(commentIDs: review.comments)
-    let tv = UITableView()
+    self.comments = repository.getComments(reviewID: review.id!)
+    tv = UITableView()
     tv.translatesAutoresizingMaskIntoConstraints = false
     tv.delegate = self
     tv.dataSource = self
@@ -36,6 +40,8 @@ class CommentViewController: UIViewController {
     commentBtn.tintColor = .systemPink
     commentBtn.contentMode = .scaleAspectFit
     commentBtn.translatesAutoresizingMaskIntoConstraints = false
+    commentBtn.isUserInteractionEnabled = true
+    commentBtn.addTarget(self, action: #selector(postcommentBtnPressed), for: .touchUpInside)
     
     commentField = CustomCommentField()
     commentField.placeholder = "Leave a comment.."
@@ -48,15 +54,17 @@ class CommentViewController: UIViewController {
     commentField.delegate = self
     commentField.translatesAutoresizingMaskIntoConstraints = false
     
+    openTextBtn = UIButton()
+    openTextBtn.addTarget(self, action: #selector(textFieldPressed), for: .touchUpInside)
+    openTextBtn.translatesAutoresizingMaskIntoConstraints = false
+    
     let commentTable = UITableViewCell()
     commentTable.selectionStyle = .none
     commentTable.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(commentTable)
     commentTable.addSubview(commentField)
     commentTable.addSubview(commentBtn)
-    
-    let scrollGesture = UIGestureRecognizer(target: self, action: #selector(hideKeyboardScroll))
-    view.addGestureRecognizer(scrollGesture)
+    commentTable.addSubview(openTextBtn)
     
     NSLayoutConstraint.activate([
       tv.topAnchor.constraint(equalTo: view.topAnchor),
@@ -77,9 +85,30 @@ class CommentViewController: UIViewController {
       commentBtn.topAnchor.constraint(equalTo: commentTable.topAnchor),
       commentBtn.bottomAnchor.constraint(equalTo: commentTable.bottomAnchor),
       commentBtn.trailingAnchor.constraint(equalTo: commentTable.trailingAnchor),
-      commentBtn.widthAnchor.constraint(equalToConstant: 50)
+      commentBtn.widthAnchor.constraint(equalToConstant: 50),
+      commentBtn.heightAnchor.constraint(equalToConstant: 50),
       
+      openTextBtn.topAnchor.constraint(equalTo: commentTable.topAnchor),
+      openTextBtn.bottomAnchor.constraint(equalTo: commentTable.bottomAnchor),
+      openTextBtn.leadingAnchor.constraint(equalTo: commentTable.leadingAnchor),
+      openTextBtn.trailingAnchor.constraint(equalTo: commentBtn.leadingAnchor),
     ])
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    self.listener = repository.firestore.collection(repository.reviewPath).document(review.id!)
+      .addSnapshotListener {
+      documentSnapshot, err in
+      guard let document = documentSnapshot else {
+        print("Error fetching document: \(err!)")
+        return
+      }
+        guard let data = document.data() else {
+          print("Document data was empty.")
+          return
+        }
+        print("Current data: \(data)")
+    }
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -87,11 +116,21 @@ class CommentViewController: UIViewController {
     commentField.textRect(forBounds: commentField.bounds)
     commentField.editingRect(forBounds: commentField.bounds)
     commentField.becomeFirstResponder()
+    openTextBtn.isEnabled = false
     NotificationCenter.default.addObserver(self, selector: #selector(CommentViewController.showKeyboardNotification(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
   }
   
-  @objc func hideKeyboardScroll() {
-    commentField.resignFirstResponder()
+  override func viewWillDisappear(_ animated: Bool) {
+    listener.remove()
+  }
+  
+//  @objc func hideKeyboardScroll() {
+//    commentField.resignFirstResponder()
+//  }
+  
+  @objc func textFieldPressed() {
+    commentField.becomeFirstResponder()
+    openTextBtn.isEnabled = false
   }
   
   @objc func showKeyboardNotification(notification: NSNotification) {
@@ -138,7 +177,7 @@ extension CommentViewController: UITableViewDelegate, UITableViewDataSource {
       cell.userLabel.text = reviewUser?.username
       cell.comment.text = review.additionalComment
       cell.timestamp.text = repository.getDisplayTimestamp(creationDate: review.creationDate!)
-      cell.profileImageView.sd_setImage(with: URL(string: (reviewUser?.profileImageUrl)!), completed: { [self]
+      cell.profileImageView.sd_setImage(with: URL(string: (reviewUser?.profileImageUrl)!), completed: {
          downloadedImage, error, cacheType, url in
          if let error = error {
            print("error downloading image: \(error.localizedDescription)")
@@ -150,11 +189,11 @@ extension CommentViewController: UITableViewDelegate, UITableViewDataSource {
          }
       })
     } else { // rest of table for comments
-      let commentUser = repository.getUser(id: comments[indexPath.row - 1].id!)
+      let commentUser = repository.getUser(id: comments[indexPath.row - 1].uid)
       cell.userLabel.text = commentUser?.username
       cell.comment.text = comments[indexPath.row - 1].comment
       cell.timestamp.text = repository.getDisplayTimestamp(creationDate: comments[indexPath.row - 1].creationDate!)
-      cell.profileImageView.sd_setImage(with: URL(string: (commentUser?.profileImageUrl)!), completed: { [self]
+      cell.profileImageView.sd_setImage(with: URL(string: (commentUser?.profileImageUrl)!), completed: { 
          downloadedImage, error, cacheType, url in
          if let error = error {
            print("error downloading image: \(error.localizedDescription)")
@@ -168,7 +207,6 @@ extension CommentViewController: UITableViewDelegate, UITableViewDataSource {
     }
     return cell
   }
-  
   
 }
 
@@ -215,7 +253,7 @@ class CommentCell: UITableViewCell {
       profileImageView.widthAnchor.constraint(equalToConstant: 40),
       profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
       
-      userLabel.topAnchor.constraint(equalTo: topAnchor),
+      userLabel.topAnchor.constraint(equalTo: topAnchor, constant: 2),
       userLabel.bottomAnchor.constraint(equalTo: comment.topAnchor),
       userLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8),
       
@@ -233,15 +271,47 @@ class CommentCell: UITableViewCell {
 }
 
 extension CommentViewController: UITextFieldDelegate {
-  func textFieldDidEndEditing(_ textField: UITextField) {
-    if textField.text == "" {
+  @objc func postcommentBtnPressed() {
+    print("postcommentBtnPressed")
+    
+    if commentField.text == "" {
       return
     } else {
-      let commentID = repository.firestore.collection(repository.commentPath).document(review.id!).documentID
-      let comment = Comment(id: commentID, comment: textField.text!, uid: repository.user!.id, creationDate: nil)
-      repository.uploadComment(comment: comment, review: review)
+      // preparing comment to upload
+
+      let commentID = repository.firestore.collection(repository.reviewPath).document(review.id!).collection(repository.commentPath).document().documentID
+
+      let comment = Comment(id: commentID, comment: commentField.text!, uid: repository.user!.id, creationDate: nil)
+      review.comments.append(commentID)
+      repository.uploadComment(comment: comment, review: review, commentIDs: review.comments)
+      
+      // fetching the latest review document from database
+      self.listener = repository.firestore.collection(repository.reviewPath).document(review.id!)
+        .addSnapshotListener { [self]
+        documentSnapshot, err in
+        guard let document = documentSnapshot else {
+          print("Error fetching document: \(err!)")
+          return
+        }
+          // successfully fetches new document
+          guard let data = document.data() else {
+            print("Document data was empty.")
+            return
+          }
+          self.review = self.review.initFromDocument(data: data)
+          self.comments = repository.getComments(reviewID: review.id!)
+          print("Current data: \(data)")
+          
+      }
     }
+    commentField.text?.removeAll()
+    commentField.resignFirstResponder()
+    openTextBtn.isEnabled = true
   }
+  
+//  func textFieldDidEndEditing(_ textField: UITextField) {
+//
+//  }
 }
 
 class CustomCommentField: UITextField {

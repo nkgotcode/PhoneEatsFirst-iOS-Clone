@@ -75,11 +75,6 @@ final class DataRepository: ObservableObject {
       .replaceError(with: [])
       .assign(to: \.reviews, on: self)
       .store(in: &cancellables)
-    
-    firestore.collection(commentPath).publisher(as: Comment.self)
-      .replaceError(with: [])
-      .assign(to: \.comments, on: self)
-      .store(in: &cancellables)
   }
 
   deinit {
@@ -102,11 +97,50 @@ final class DataRepository: ObservableObject {
     reviews.first(where: { $0.id == id })
   }
   
-  func getComments(commentIDs: [String]) -> [Comment] {
-    var ret = [Comment]()
-    for id in commentIDs {
-      ret.append(comments.first(where: { $0.id == id})!)
+  func getReviews(idArr: [String]) -> [Review] {
+    var ret: [Review] = []
+    for id in idArr {
+      let r = getReview(id: id)
+      ret.append(r!)
     }
+    return ret
+  }
+  
+  func getComments(reviewID: String) -> [Comment] {
+    var ret: [Comment] = []
+    
+    firestore.collection(reviewPath).document(reviewID).collection(commentPath).getDocuments(completion: {
+      querrySnapshot, err in
+      if let err = err {
+        print("Error getting documents: \(err)")
+      }
+      else {
+        print("got documents")
+        // for loop getting each comment
+        for doc in querrySnapshot!.documents {
+          let data = doc.data()
+          print(data)
+          var comment: String = ""
+          var uid: String = ""
+          var creationDate: Timestamp?
+          
+          for d in data {
+            switch(d.key) {
+              case "comment": comment = d.value as! String
+              case "uid": uid = d.value as! String
+              case "creationDate": creationDate = d.value as? Timestamp
+              default: return
+            }
+            print (comment)
+            print(uid)
+            print(creationDate)
+            let c = Comment(id: doc.documentID, comment: comment, uid: uid, creationDate: creationDate)
+            print("got comment")
+            ret.append(c)
+          }
+        }
+      }
+    })
     return ret
   }
   
@@ -129,8 +163,6 @@ final class DataRepository: ObservableObject {
   
   func getTagObjects(reviewID: String) -> [ReviewTag] {
     var tagObjects : [ReviewTag] = []
-    let review = getReview(id: reviewID)
-    let tagIDs = review?.tags
     firestore.collection(reviewPath).document(reviewID).collection(reviewTagPath).getDocuments(completion: {
       querrySnapshot, err in
       if let err = err {
@@ -144,7 +176,7 @@ final class DataRepository: ObservableObject {
           var y: Double = 0.0
           var description: String?
           // getting fields of review document
-          for (n,d) in data.enumerated() {
+          for d in data {
             switch(d.key) {
             case "x": x = d.value as! Double
             case "y": y = d.value as! Double
@@ -261,6 +293,8 @@ final class DataRepository: ObservableObject {
           _ = self.firestore.collection(self.reviewPath).document(postId).collection(self.reviewTagPath).document(tag.id!).setData(from: tag)
         }
       }
+      // populate local version
+    self.reviews.append(review)
   }
 
   func register(
@@ -312,6 +346,7 @@ final class DataRepository: ObservableObject {
         .document(result.user.uid)
         .setData(from: user)
 
+      self.users.append(user)
       completion?(true)
     }
   }
@@ -332,8 +367,33 @@ final class DataRepository: ObservableObject {
     firestore.collection(userPath).document(user!.id).updateData(["following": user?.following])
   }
   
-  func uploadComment(comment: Comment, review: Review) {
-    
+  func likeReview(reviewID: String, uid: String) {
+    var review = getReview(id: reviewID)
+    review?.likes.append(uid)
+    firestore.collection(reviewPath).document(reviewID).updateData(["likes": review?.likes])
+  }
+  
+  func unlikeReview(reviewID: String, uid: String) {
+    var review = getReview(id: reviewID)
+    review?.likes.removeAll(where: {$0 == uid})
+    firestore.collection(reviewPath).document(reviewID).updateData(["likes": review?.likes])
+  }
+  
+  func bookmarkBusiness(businessID: String) {
+    user?.bookmarks.append(businessID)
+    firestore.collection(userPath).document(user!.id).updateData(["bookmarks": user?.bookmarks])
+  }
+  
+  func unbookmarkBusiness(businessID: String) {
+    user?.bookmarks.removeAll(where: {$0 == businessID})
+    firestore.collection(userPath).document(user!.id).updateData(["bookmarks": user?.bookmarks])
+  }
+  
+  func uploadComment(comment: Comment, review: Review, commentIDs: [String]) {
+    self.comments.append(comment)
+    var upload = firestore.collection(self.reviewPath).document(review.id!).collection(commentPath).document(comment.id!).setData(from: comment)
+
+    firestore.collection(reviewPath).document(review.id!).updateData(["comments": review.comments])
   }
   
   func uploadProfilePicture(image: UIImage) {

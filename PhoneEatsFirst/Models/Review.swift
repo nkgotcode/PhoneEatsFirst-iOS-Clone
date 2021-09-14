@@ -34,4 +34,29 @@ struct Review: Codable, Identifiable {
   var edited: Bool
   var additionalComment: String?
   @ServerTimestamp var creationDate: Timestamp?
+  
+  func initFromDocument(data: [String:Any]) -> Review {
+    for dict in data {
+      switch(dict.key) {
+        case "id": self.id
+        case "description": self.description
+        case "userId": self.userId
+        case "businessId": self.businessId
+        case "imageUrl": self.imageUrl
+        case "foodRating": self.foodRating
+        case "serviceRating": self.serviceRating
+        case "atmosphereRating": self.atmosphereRating
+        case "valueRating": self.valueRating
+        case "rating": self.rating
+        case "tags": self.tags
+        case "comments": self.comments
+        case "likes": self.likes
+        case "edited": self.edited
+        case "additionalComment": self.additionalComment
+        case "creationDate": self.creationDate
+        default: return self
+      }
+    }
+    return self
+  }
 }

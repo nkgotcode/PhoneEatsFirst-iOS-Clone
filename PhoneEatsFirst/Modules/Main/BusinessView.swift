@@ -6,8 +6,8 @@
 //
 
 import Resolver
-import SwiftUI
 import SDWebImageSwiftUI
+import SwiftUI
 
 enum ViewMode: Int {
   case info
@@ -19,42 +19,45 @@ struct BusinessView: View {
   var business: Business
 
   @Environment(\.presentationMode) private var presentationMode
-
+  @Injected private var repository: DataRepository
   @State private var chosenBusiness: Business?
   @State private var presentingInfoView: Bool = false
   @State private var pickerSelection: ViewMode = .info
+  @State private var presentingActivityView: Bool = false
+  @State var isBookmarked: Bool!
 
   var body: some View {
-    NavigationView {
-      GeometryReader { geometry in
+      NavigationView {
+        GeometryReader { geometry in
         ScrollView {
           VStack {
             if let imageUrl = business.imageUrl {
               WebImage(url: URL(string: imageUrl)!)
-                .resizable()
                 .placeholder(Image("placeholder"))
+                .centerSquareCropped()
                 .transition(.fade(duration: 0.5))
                 .scaledToFill()
             } else {
               Image("placeholder")
-                .resizable()
+                .centerSquareCropped()
                 .scaledToFill()
             }
 
             HStack {
               VStack(alignment: .leading) {
-                Text(business.name).font(.largeTitle).bold()
+                Text(business.name).font(.title3).bold()
 
-                Text(business.address).lineLimit(nil)
+                Text(business.address).font(.subheadline).lineLimit(nil)
 
                 HStack {
-                  let stars = 5 // review's stars
-                  Label(String(format: "%d", stars), systemImage: "star.fill")
-                    .font(.footnote)
-                    .foregroundColor(Color(.systemPink))
+                  Label(
+                    String(format: "%.2f", business.stars as! CVarArg),
+                    systemImage: "star.fill"
+                  )
+                  .font(.footnote)
+                  .foregroundColor(Color(.systemPink))
 
-                  let price = 1
-                  Text(String(repeating: "$", count: price))
+                  Text(String(repeating: "$", count: business.price!))
                     .font(.footnote)
                 }
                 .padding(.top, 8)
@@ -65,6 +68,7 @@ struct BusinessView: View {
               VStack(alignment: .center, spacing: 8) {
                 HStack(alignment: .center) {
                   Button {
+                    presentingActivityView = true
                     print("share restaurant")
                   } label: {
                     Image(systemName: "square.and.arrow.up")
@@ -78,11 +82,18 @@ struct BusinessView: View {
                   Divider().frame(width: 4)
 
                   Button {
+                    isBookmarked?.toggle()
                     print("bookmark restaurant")
                   } label: {
-                    Image(systemName: "bookmark")
-                      .font(.title)
-                      .frame(width: 36, height: 36)
+                    if isBookmarked! {
+                      Image(systemName: "bookmark.fill")
+                        .font(.title)
+                        .frame(width: 36, height: 36)
+                    } else {
+                      Image(systemName: "bookmark")
+                        .font(.title)
+                        .frame(width: 36, height: 36)
+                    }
                   }
                 }
 
@@ -107,7 +118,7 @@ struct BusinessView: View {
                 }
               }
             } // HStack
-            .frame(width: 180, height: 180)
+            .padding()
 
             Picker("Main", selection: $pickerSelection) {
               Text("Info").tag(ViewMode.info)
@@ -115,21 +126,39 @@ struct BusinessView: View {
             }
             .pickerStyle(.segmented)
             .padding(8)
-
-            // main content view
-            PageView(selection: $pickerSelection, indexDisplayMode: .never) {
-              InfoView(business: business).tag(ViewMode.info)
-              
-              // TODO: add review view here
-//              ReviewView().tag(ViewMode.reviews)
+            
+            if pickerSelection == .info {
+              InfoView(business: business).padding()
             }
-            .ignoresSafeArea(.container, edges: .vertical)
+            else {
+              if let arr = repository.getReviews(idArr: business.reviews) {
+                ReviewsView(reviews: arr)
+              }
+            }
+            // main content view
+//            GeometryReader { pageGeo in
+//              PageView(selection: $pickerSelection, indexDisplayMode: .never) {
+////                VStack {
+//                GeometryReader { g in
+//                  InfoView(business: business).tag(ViewMode.info)
+//                    .frame(width: g.size.width, height: g.size.height, alignment: .top)
+//                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+//                    .ignoresSafeArea(.all, edges: .bottom)
+//                    .padding(.horizontal, 8)
+//                }
+////                }
+//                // TODO: add review view here
+//                //              ReviewView().tag(ViewMode.reviews)
+//              }
+//              .frame(width: pageGeo.frame(in: .local).size.width, height: pageGeo.frame(in: .local).size.height, alignment: .top)
+//              .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+//              .ignoresSafeArea(.all, edges: .bottom)
+//            }
+//            GeometryReader { g in
+//              BusinessInfoWrapper(business: business)
+//            }
           } // VStack
-          .padding()
-          .frame(width: geometry.size.width, height: geometry.size.height)
-          .navigationTitle(business.name)
-          .navigationBarTitleDisplayMode(.inline)
-          .navigationViewStyle(.stack)
+//          .frame(width: geometry.size.width, height: geometry.size.height)
           .toolbar {
             Button {
               presentationMode.wrappedValue.dismiss()
@@ -138,8 +167,10 @@ struct BusinessView: View {
             }
           }
         } // ScrollView
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(width: geometry.size.width, height: geometry.size.height)
       } // GeometryReader
+        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .top)
+      .edgesIgnoringSafeArea(.all)
     } // NavigationView
   }
 }
@@ -148,7 +179,6 @@ struct InfoView: View {
   var business: Business
   @State private var pickerSelection: ViewMode = .info
   var body: some View {
-//    ScrollView {
     VStack(spacing: 16) {
       Button {} label: {
         ZStack {
@@ -183,14 +213,14 @@ struct InfoView: View {
           Text("12:00 AM - 12:00 PM")
         }
       }
-    }.padding(8)
-//    }
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 }
 
 struct ReviewsView: View {
   var reviews: [Review]
-  
+
   @Injected private var repository: DataRepository
 
   @State private var chosenBusiness: Business? = nil
@@ -227,9 +257,6 @@ struct ReviewsView: View {
                         .font(.body)
 
                       Spacer()
-
-//                      Text(formatter.localizedString(for: review.creationDate, relativeTo: Date())
-//                        .font(.footnote)
                     }
 
                     Spacer()
@@ -524,6 +551,32 @@ WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEA
 WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!WHEREZZZ DAH FOOD AT CUZZZZ????? IF MAN CATCH U OUT HERE WIT DAH POLISH U BE DEAD FAM!
 """
 
+extension Image {
+  func centerSquareCropped() -> some View {
+    GeometryReader { geo in
+      let length = geo.size.width > geo.size.height ? geo.size.height : geo.size.width
+      self
+        .resizable()
+        .scaledToFill()
+        .frame(width: length, height: length, alignment: .center)
+        .clipped()
+    }
+  }
+}
+
+extension WebImage {
+  func centerSquareCropped() -> some View {
+    GeometryReader { geo in
+      let length = geo.size.width > geo.size.height ? geo.size.height : geo.size.width
+      self
+        .resizable()
+        .scaledToFill()
+        .frame(width: length, height: length, alignment: .center)
+        .clipped()
+    }
+  }
+}
+
 class ViewFrame: ObservableObject {
   var startingRect: CGRect?
 
@@ -539,6 +592,26 @@ class ViewFrame: ObservableObject {
     frame = .zero
   }
 }
+
+extension UINavigationController {
+  override open func viewDidLoad() {
+    super.viewDidLoad()
+    let appearance = UINavigationBarAppearance()
+    appearance.configureWithTransparentBackground()
+    appearance.backgroundColor = UIColor.clear
+  }
+}
+
+//struct ReviewViewWrapper: UIViewControllerRepresentable {
+//  typealias UIViewControllerType = HomeViewController
+//  func makeUIViewController(context: Context) -> HomeViewController {
+//    <#code#>
+//  }
+//
+//  func updateUIViewController(_ uiViewController: HomeViewController, context: Context) {
+//    <#code#>
+//  }
+//}
 
 struct GeometryGetter: View {
   @Binding var rect: CGRect

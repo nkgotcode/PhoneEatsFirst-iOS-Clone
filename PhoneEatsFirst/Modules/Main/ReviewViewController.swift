@@ -25,12 +25,15 @@ class ReviewViewController: UIViewController {
   var commentBtn: UIButton!
   var bookmarkBtn: UIButton!
   var postImageView: UIImageView!
+  var timeStamp: UILabel!
   var additionalComment: UILabel!
   var menuBtn: UIButton!
   var tagObjects: [ReviewTag]!
   var profilePictureModel: ProfilePictureModel!
   var profileVC: ProfileViewController!
   var userDetailHStack: UIStackView!
+  var isLiked: Bool!
+  var isBookmarked: Bool!
   
   init(review: Review, tagObjects: [ReviewTag]) {
     self.review = review
@@ -161,25 +164,38 @@ class ReviewViewController: UIViewController {
     })
     
     likeBtn = UIButton()
-    likeBtn.setImage(UIImage(systemName: "heart"), for: .normal)
-    likeBtn.contentMode = .scaleAspectFit
+    // check database if user already liked the review
+    if review.likes.contains(repository.user!.id) {
+      likeBtn.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+      isLiked = true
+    } else {
+      likeBtn.setImage(UIImage(systemName: "heart"), for: .normal)
+      isLiked = false
+    }
+    likeBtn.imageView?.contentMode = .scaleAspectFit
+    likeBtn.imageView?.layer.transform = CATransform3DMakeScale(1.6, 1.6, 1.6)
     likeBtn.tintColor = .systemPink
+    likeBtn.setContentHuggingPriority(.required, for: .horizontal)
     likeBtn.translatesAutoresizingMaskIntoConstraints = false
     likeBtn.addTarget(self, action: #selector(likeBtnPressed), for: .touchUpInside)
     
     commentBtn = UIButton()
     commentBtn.setImage(UIImage(systemName: "bubble.right"), for: .normal)
     commentBtn.tintColor = .systemPink
-    commentBtn.contentMode = .scaleAspectFit
+    commentBtn.imageView?.contentMode = .scaleAspectFit
+    commentBtn.imageView?.layer.transform = CATransform3DMakeScale(1.6, 1.6, 1.6)
+    commentBtn.setContentHuggingPriority(.required, for: .horizontal)
     commentBtn.translatesAutoresizingMaskIntoConstraints = false
     commentBtn.addTarget(self, action: #selector(commentBtnPressed), for: .touchUpInside)
     
-    bookmarkBtn = UIButton()
-    bookmarkBtn.setImage(UIImage(systemName: "bookmark"), for: .normal)
-    bookmarkBtn.tintColor = .systemPink
-    bookmarkBtn.contentMode = .scaleAspectFit
-    bookmarkBtn.translatesAutoresizingMaskIntoConstraints = false
-    bookmarkBtn.addTarget(self, action: #selector(bookmarkBtnPressed), for: .touchUpInside)
+    let paddingView = UIView()
+    paddingView.translatesAutoresizingMaskIntoConstraints = false
+//    bookmarkBtn = UIButton()
+//    bookmarkBtn.setImage(UIImage(systemName: "bookmark"), for: .normal)
+//    bookmarkBtn.tintColor = .systemPink
+//    bookmarkBtn.contentMode = .scaleAspectFit
+//    bookmarkBtn.translatesAutoresizingMaskIntoConstraints = false
+//    bookmarkBtn.addTarget(self, action: #selector(bookmarkBtnPressed), for: .touchUpInside)
     
     let imageAndActionVStack = UIStackView()
     imageAndActionVStack.axis = .vertical
@@ -191,13 +207,14 @@ class ReviewViewController: UIViewController {
     let actionHStack = UIStackView()
     actionHStack.axis = .horizontal
     actionHStack.alignment = .center
-    actionHStack.distribution = .equalCentering
+    actionHStack.distribution = .equalSpacing
     actionHStack.spacing = 4
     actionHStack.translatesAutoresizingMaskIntoConstraints = false
     
     actionHStack.addArrangedSubview(likeBtn)
     actionHStack.addArrangedSubview(commentBtn)
-    actionHStack.addArrangedSubview(bookmarkBtn)
+    actionHStack.addArrangedSubview(paddingView)
+//    actionHStack.addArrangedSubview(bookmarkBtn)
     
     imageAndActionVStack.addArrangedSubview(postImageView)
     imageAndActionVStack.addArrangedSubview(actionHStack)
@@ -219,6 +236,13 @@ class ReviewViewController: UIViewController {
     commentLabel.numberOfLines = 2
     commentLabel.textAlignment = .left
     view.addSubview(commentLabel)
+    
+    timeStamp = UILabel()
+    timeStamp.translatesAutoresizingMaskIntoConstraints = false
+    timeStamp.text = repository.getDisplayTimestamp(creationDate: review.creationDate!)
+    timeStamp.textColor = .systemGray
+    timeStamp.font = UIFont.systemFont(ofSize: 12, weight: .light)
+    view.addSubview(timeStamp)
     
     NSLayoutConstraint.activate([
       userDetailHStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
@@ -287,8 +311,15 @@ class ReviewViewController: UIViewController {
       restaurantLabel.widthAnchor.constraint(equalToConstant: 120),
       
       likeBtn.heightAnchor.constraint(equalToConstant: 40),
+      likeBtn.leadingAnchor.constraint(equalTo: actionHStack.leadingAnchor),
+      likeBtn.widthAnchor.constraint(equalTo: likeBtn.heightAnchor),
+      
+      commentBtn.leadingAnchor.constraint(equalTo: likeBtn.trailingAnchor),
       commentBtn.heightAnchor.constraint(equalToConstant: 40),
-      bookmarkBtn.heightAnchor.constraint(equalToConstant: 40),
+      commentBtn.widthAnchor.constraint(equalToConstant: 40),
+      
+      paddingView.leadingAnchor.constraint(equalTo: commentBtn.trailingAnchor),
+      paddingView.trailingAnchor.constraint(equalTo: actionHStack.trailingAnchor),
       
       cmtUserLabel.topAnchor.constraint(equalTo: actionHStack.bottomAnchor, constant: 4),
       cmtUserLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
@@ -297,6 +328,9 @@ class ReviewViewController: UIViewController {
       commentLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
       commentLabel.topAnchor.constraint(equalTo: actionHStack.bottomAnchor, constant: 4),
       commentLabel.centerYAnchor.constraint(equalTo: cmtUserLabel.centerYAnchor),
+      
+      timeStamp.topAnchor.constraint(equalTo: commentLabel.bottomAnchor, constant: 8),
+      timeStamp.leadingAnchor.constraint(equalTo: cmtUserLabel.leadingAnchor),
     ])
   }
   
@@ -311,6 +345,19 @@ class ReviewViewController: UIViewController {
   
   @objc func likeBtnPressed() {
     print("likeBtnPressed")
+    
+    switch (isLiked) {
+      case true:
+        isLiked = false
+        repository.unlikeReview(reviewID: review.id!, uid: repository.user!.id)
+        likeBtn.setImage(UIImage(systemName: "heart"), for: .normal)
+        
+      case false:
+        isLiked = true
+        repository.likeReview(reviewID: review.id!, uid: repository.user!.id)
+        likeBtn.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+      default: return
+    }
   }
   
   @objc func commentBtnPressed() {
@@ -320,9 +367,22 @@ class ReviewViewController: UIViewController {
     print("comment button pressed")
   }
   
-  @objc func bookmarkBtnPressed() {
-    print("bookmarkBtnPressed")
-  }
+//  @objc func bookmarkBtnPressed() {
+//    print("bookmarkBtnPressed")
+//
+//    switch (isBookmarked) {
+//      case true:
+//        isBookmarked = false
+//        repository.unlikeReview(reviewID: review.id!, uid: repository.user!.id)
+//        likeBtn.setImage(UIImage(systemName: "heart"), for: .normal)
+//
+//      case false:
+//        isBookmarked = true
+//        repository.likeReview(reviewID: review.id!, uid: repository.user!.id)
+//        likeBtn.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+//      default: return
+//    }
+//  }
 }
 
 extension UIFont {

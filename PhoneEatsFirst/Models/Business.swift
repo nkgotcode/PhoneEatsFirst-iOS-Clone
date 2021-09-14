@@ -39,5 +39,5 @@ struct Business: Codable, Identifiable {
   var closingHours: [Weekday: Int] // store as minutes
   var foods: [Food]
   var cuisines: [Cuisine]
-  var reviews: [Review]
+  var reviews: [String]
 }

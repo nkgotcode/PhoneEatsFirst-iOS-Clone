@@ -32,7 +32,7 @@ class ProfileViewController: UIViewController {
     scrollView = UIScrollView(frame: view.safeAreaLayoutGuide.layoutFrame)
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.isScrollEnabled = true
-    scrollView.contentSize = CGSize(width: 400, height: 3000)
+    scrollView.contentSize = CGSize(width: 400, height: view.frame.height)
     scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
     view.addSubview(scrollView)
     
@@ -55,7 +55,7 @@ class ProfileViewController: UIViewController {
         profileImageView.image = downloadedImage!
       }
     })
-    profilePictureModel = ProfilePictureModel(user: user, profileImage: profileImageView.image!, imgView: profileImageView)
+    profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
     
     profileImageView.frame = CGRect(x: 0, y: 0, width: 120, height: 120)
     profileImageView.contentMode = .scaleAspectFit
@@ -70,6 +70,7 @@ class ProfileViewController: UIViewController {
     displayName = UILabel()
     displayName.text = user.firstName + " " + user.lastName
     displayName.textColor = .systemPink
+    displayName.font = displayName.font.bold
     displayName.translatesAutoresizingMaskIntoConstraints = false
     
     scrollView.addSubview(userLabel)
@@ -99,6 +100,7 @@ class ProfileViewController: UIViewController {
     followersBtn.setTitle("Followers\n\(user.followers.count)", for: .normal)
     followersBtn.setTitleColor(.systemPink, for: .normal)
     followersBtn.titleLabel?.textAlignment = .center
+    followersBtn.titleLabel?.font = followersBtn.titleLabel?.font.bold
     followersBtn.sizeToFit()
     followersBtn.addTarget(self, action: #selector(followersBtnPressed), for: .touchUpInside)
 
@@ -106,6 +108,7 @@ class ProfileViewController: UIViewController {
     followingBtn.titleLabel?.lineBreakMode = .byWordWrapping
     followingBtn.titleLabel?.numberOfLines = 2
     followingBtn.setTitle("Following\n\(user.following.count)", for: .normal)
+    followingBtn.titleLabel?.font = followingBtn.titleLabel?.font.bold
     followingBtn.setTitleColor(.systemPink, for: .normal)
     followingBtn.titleLabel?.textAlignment = .center
     followingBtn.sizeToFit()
@@ -129,7 +132,7 @@ class ProfileViewController: UIViewController {
     
     bio = UITextView()
     bio.text = "Bio"
-    bio.font = bio.font?.withSize(12)
+    bio.font = bio.font?.withSize(16)
     bio.isEditable = false
     bio.isSelectable = false
     bio.translatesAutoresizingMaskIntoConstraints = false
@@ -138,34 +141,38 @@ class ProfileViewController: UIViewController {
     // buttons
     buttonL = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
     buttonL.setTitle("Edit Profile", for: .normal)
-    buttonL.setTitleColor(.systemPink, for: .normal)
+//    buttonL.setTitleColor(.systemPink, for: .normal)
+    buttonL.titleLabel?.font = buttonL.titleLabel?.font.withSize(16).bold
     buttonL.layer.borderColor = UIColor.systemPink.cgColor
-    buttonL.layer.borderWidth = 1
+    buttonL.layer.borderWidth = 2
     buttonL.layer.cornerRadius = 10
     buttonL.translatesAutoresizingMaskIntoConstraints = false
     buttonL.addTarget(self, action: #selector(leftBtnPressed), for: .touchUpInside)
     
     buttonR = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
     buttonR.setTitle("Settings", for: .normal)
-    buttonR.setTitleColor(.systemPink, for: .normal)
+//    buttonR.setTitleColor(.systemPink, for: .normal)
     buttonR.layer.borderColor = UIColor.systemPink.cgColor
-    buttonR.layer.borderWidth = 1
+    buttonR.titleLabel?.font = buttonR.titleLabel?.font.withSize(16).bold
+    buttonR.layer.borderWidth = 2
     buttonR.layer.cornerRadius = 10
     buttonR.translatesAutoresizingMaskIntoConstraints = false
     buttonR.addTarget(self, action: #selector(rightBtnPressed), for: .touchUpInside)
     
     followButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
     followButton.setTitle("Follow", for: .normal)
+    followButton.titleLabel?.font = followButton.titleLabel?.font.withSize(16).bold
     followButton.backgroundColor = .systemPink
-    followButton.layer.borderWidth = 1
+    followButton.layer.borderWidth = 2
     followButton.layer.cornerRadius = 10
 //    followButton.translatesAutoresizingMaskIntoConstraints = false
     followButton.addTarget(self, action: #selector(followBtnPressed), for: .touchUpInside)
     
     followedButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
-    followedButton.setTitle("Followed", for: .normal)
-    followedButton.layer.borderColor = UIColor.systemPink.cgColor
-    followedButton.layer.borderWidth = 1
+    followedButton.setTitle("Following", for: .normal)
+    followedButton.titleLabel?.font = followedButton.titleLabel?.font.withSize(16).bold
+//    followedButton.layer.borderColor = UIColor.systemPink.cgColor
+    followedButton.layer.borderWidth = 2
     followedButton.layer.cornerRadius = 10
 //    followButton.translatesAutoresizingMaskIntoConstraints = false
     followedButton.addTarget(self, action: #selector(followedBtnPressed), for: .touchUpInside)
@@ -216,15 +223,24 @@ class ProfileViewController: UIViewController {
     scrollView.addSubview(reviewsVStack)
     
     // loop to create reviewView
-    for reviewID in user.userReviewsID {
+    for (n, reviewID) in user.userReviewsID.reversed().enumerated() {
       let review = repository.getReview(id: reviewID)
       let tagObjects = repository.getTagObjects(reviewID: reviewID)
       let reviewView = ReviewViewController(review: review!, tagObjects: tagObjects)
       reviewView.profileVC = self
+      reviewsVStack.spacing = reviewView.view.frame.height + 8
       addChild(reviewView)
       reviewView.didMove(toParent: self)
       reviewsVStack.addArrangedSubview(reviewView.view)
-      reviewsVStack.addConstraintsSubView(subview: reviewView.view)
+      if n > 0 {
+        let previousSubview = reviewsVStack.arrangedSubviews[n-1]
+        reviewsVStack.addConstraintsSubView(subview: reviewView.view, previousSubview: previousSubview)
+      } else {
+        reviewView.view.translatesAutoresizingMaskIntoConstraints = false
+        reviewView.view.topAnchor.constraint(equalTo: reviewsVStack.topAnchor).isActive = true
+        reviewView.view.leadingAnchor.constraint(equalTo: reviewsVStack.leadingAnchor).isActive = true
+        reviewView.view.trailingAnchor.constraint(equalTo: reviewsVStack.trailingAnchor).isActive = true
+      }
     }
 
     NSLayoutConstraint.activate([
@@ -232,7 +248,6 @@ class ProfileViewController: UIViewController {
       scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
       scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      scrollView.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor),
       
       buttonsHStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -8),
       buttonsHStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 8),
@@ -282,11 +297,11 @@ class ProfileViewController: UIViewController {
       separator.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
       separator.heightAnchor.constraint(equalToConstant: 1),
       
-      reviewsVStack.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 16),
-      reviewsVStack.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor),
+      reviewsVStack.topAnchor.constraint(equalTo: separator.bottomAnchor, constant: 8),
+      reviewsVStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
       reviewsVStack.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
       reviewsVStack.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-      reviewsVStack.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
+      reviewsVStack.heightAnchor.constraint(equalToConstant: CGFloat(590 * user.userReviewsID.count)),
     ])
   }
   
@@ -400,12 +415,10 @@ class ProfilePictureModel: ObservableObject {
 }
 
 extension UIView {
-  func addConstraintsSubView(subview: UIView) {
-    self.addSubview(subview)
+  func addConstraintsSubView(subview: UIView, previousSubview: UIView) {
     subview.translatesAutoresizingMaskIntoConstraints = false
     NSLayoutConstraint.activate([
-      subview.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-      subview.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+      subview.topAnchor.constraint(equalTo: previousSubview.topAnchor, constant: 590),
     ])
   }
 }
