@@ -91,6 +91,7 @@ class MainViewController: UITabBarController {
     
     let profileVC = ProfileViewController()
     profileVC.user = repository.user!
+    profileVC.profilePictureModel = ProfilePictureModel(user: repository.user!, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: UIImageView())
     profileVC.title = "Profile"
     profileVC.navigationItem.leftBarButtonItem = addFriendButtonItem
     profileVC.navigationItem.rightBarButtonItem = notificationButtonItem

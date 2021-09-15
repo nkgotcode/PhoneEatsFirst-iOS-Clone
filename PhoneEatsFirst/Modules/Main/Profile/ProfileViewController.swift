@@ -36,13 +36,13 @@ class ProfileViewController: UIViewController {
     scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
     view.addSubview(scrollView)
     
-    if profilePictureModel != nil {
-      profileImageView = profilePictureModel.imgView
-    } else {
+//    if profilePictureModel != nil {
+//      profileImageView = UIImageView(image: profilePictureModel.profileImage)
+//    } else {
     profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate))
     profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
     profileImageView = profilePictureModel.imgView
-    }
+//    }
     
     profileImageView.frame = CGRect(x: 0, y: 0, width: 120, height: 120)
     profileImageView.contentMode = .scaleAspectFit
@@ -380,6 +380,7 @@ class ProfilePictureModel: ObservableObject {
         downloadedImage, error, cacheType, url in
         if let error = error {
           print("error downloading image: \(error.localizedDescription)")
+          self.profileImage = profileImage
         }
         else {
           print("successfully downloaded: \(String(describing: url))")
@@ -388,7 +389,7 @@ class ProfilePictureModel: ObservableObject {
       })
   
     }
-    self.profileImage = profileImage
+
     self.user = user
     self.imgView = UIImageView(image: self.profileImage)
   }
