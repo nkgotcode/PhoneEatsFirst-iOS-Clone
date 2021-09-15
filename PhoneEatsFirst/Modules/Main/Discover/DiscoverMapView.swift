@@ -27,9 +27,22 @@ class BusinessAnnotation: NSObject, MKAnnotation {
 
 class MapViewController: UIViewController {
   @Injected private var repository: DataRepository
-
+//  @State var bookmarkViewModel: BookmarkViewModel!
   private var mapView = MKMapView()
-
+  
+//  convenience init() {
+//      self.init()
+//  }
+//
+//  init(bookmarkVM: BookmarkViewModel) {
+//    super.init(nibName: nil, bundle: nil)
+//    self.bookmarkViewModel = bookmarkVM
+//  }
+//
+//  required init?(coder: NSCoder) {
+//    fatalError("init(coder:) has not been implemented")
+//  }
+  
   override func viewDidLoad() {
     super.viewDidLoad()
 
@@ -103,7 +116,7 @@ extension MapViewController: MKMapViewDelegate {
   ) {
     if let annotation = view.annotation as? BusinessAnnotation {
       view.window?.rootViewController?.present(
-        UIHostingController(rootView: BusinessView(business: annotation.business, isBookmarked: repository.isBookmarked(business: annotation.business))),
+        UIHostingController(rootView: BusinessView(business: annotation.business)),
         animated: true,
         completion: nil
       )
@@ -112,15 +125,18 @@ extension MapViewController: MKMapViewDelegate {
 }
 
 struct MapView: UIViewControllerRepresentable {
+//  @State var bookmarkViewModel: BookmarkViewModel
   func makeUIViewController(context: Context) -> MapViewController {
-    MapViewController()
+    let mapVC = MapViewController()
+//    mapVC.bookmarkViewModel = self.bookmarkViewModel
+    return mapVC
   }
 
   func updateUIViewController(_ uiViewController: MapViewController, context: Context) {}
 }
 
-struct DiscoverMapView_Previews: PreviewProvider {
-  static var previews: some View {
-    MapView()
-  }
-}
+//struct DiscoverMapView_Previews: PreviewProvider {
+//  static var previews: some View {
+//    MapView()
+//  }
+//}

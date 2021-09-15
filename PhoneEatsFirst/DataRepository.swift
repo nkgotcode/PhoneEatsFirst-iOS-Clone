@@ -106,16 +106,25 @@ final class DataRepository: ObservableObject {
     return ret
   }
   
-  func getComments(reviewID: String) -> [Comment] {
+  func getComments(review: Review) -> [Comment] {
     var ret: [Comment] = []
     
-    firestore.collection(reviewPath).document(reviewID).collection(commentPath).getDocuments(completion: {
+//    firestore.collection(reviewPath).document(review.id!).getDocument {
+//      snapshot, err in
+//      if err != nil {
+//        print(err?.localizedDescription)
+//      } else {
+//        print(snapshot)
+//        let data = snapshot?.data()
+//        print(data)
+//      }
+//    }
+    firestore.collection(reviewPath).document(review.id!).collection(commentPath).getDocuments {
       querrySnapshot, err in
       if let err = err {
         print("Error getting documents: \(err)")
       }
       else {
-        print("got documents")
         // for loop getting each comment
         for doc in querrySnapshot!.documents {
           let data = doc.data()
@@ -123,7 +132,7 @@ final class DataRepository: ObservableObject {
           var comment: String = ""
           var uid: String = ""
           var creationDate: Timestamp?
-          
+
           for d in data {
             switch(d.key) {
               case "comment": comment = d.value as! String
@@ -131,18 +140,20 @@ final class DataRepository: ObservableObject {
               case "creationDate": creationDate = d.value as? Timestamp
               default: return
             }
-            print (comment)
-            print(uid)
-            print(creationDate)
-            let c = Comment(id: doc.documentID, comment: comment, uid: uid, creationDate: creationDate)
-            print("got comment")
-            ret.append(c)
           }
+          let c = Comment(id: doc.documentID, comment: comment, uid: uid, creationDate: creationDate)
+          print(c)
+          ret.append(c)
+          print(ret)
         }
       }
-    })
+    }
     return ret
   }
+  
+//  func getBookmarkModel() -> BookmarkModel {
+//
+//  }
   
   func getFollowingReviews(following: [String]) -> [String] {
     var ret: [String] = []

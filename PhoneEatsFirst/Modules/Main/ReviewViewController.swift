@@ -30,7 +30,6 @@ class ReviewViewController: UIViewController {
   var menuBtn: UIButton!
   var tagObjects: [ReviewTag]!
   var profilePictureModel: ProfilePictureModel!
-  var profileVC: ProfileViewController!
   var userDetailHStack: UIStackView!
   var isLiked: Bool!
   var isBookmarked: Bool!
@@ -49,22 +48,16 @@ class ReviewViewController: UIViewController {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
     user = repository.getUser(id: review.userId)
-    profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate))
+    
+    if profilePictureModel != nil {
+      profileImageView = profilePictureModel.imgView
+    } else {
+      profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate))
+      
+      profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
+      profileImageView = profilePictureModel.imgView
+    }
 
-    profileImageView.sd_setImage(with: URL(string: user.profileImageUrl!), completed: {
-      [self]
-      downloadedImage, error, cacheType, url in
-      if let error = error {
-        print("error downloading image: \(error.localizedDescription)")
-        profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
-
-      }
-      else {
-        print("successfully downloaded: \(String(describing: url))")
-        profileImageView.image = downloadedImage!
-      }
-    })
-//    profilePictureModel = ProfilePictureModel(user: user, profileImage: profileImageView.image!, imgView: profileImageView)
     profileImageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
     profileImageView.translatesAutoresizingMaskIntoConstraints = false
     profileImageView.isUserInteractionEnabled = true
@@ -100,7 +93,6 @@ class ReviewViewController: UIViewController {
     
     userDetailHStack.addArrangedSubview(profileImageView)
     userDetailHStack.addArrangedSubview(userLabel)
-//    userDetailHStack.addArrangedSubview(profileBtn)
     userDetailHStack.addArrangedSubview(menuBtn)
     view.addSubview(userDetailHStack)
     
@@ -339,6 +331,7 @@ class ReviewViewController: UIViewController {
     if repository.user!.id != user.id {
       let profileVC = ProfileViewController()
       profileVC.user = user
+      profileVC.profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: UIImageView())
       navigationController?.pushViewController(profileVC, animated: true)
     }
   }

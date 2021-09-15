@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		040881F626F15B1600650ABB /* BookmarkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040881F526F15B1600650ABB /* BookmarkViewModel.swift */; };
 		0425044326ACBAEB005D135B /* PhotoCaptureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0425044226ACBAEB005D135B /* PhotoCaptureProcessor.swift */; };
 		0425046926AE5D82005D135B /* PostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0425046826AE5D82005D135B /* PostViewController.swift */; };
 		042F1F6026B0BB2A007D7500 /* PhoneAuthProvider+Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042F1F5C26B0BB2A007D7500 /* PhoneAuthProvider+Combine.swift */; };
@@ -26,7 +27,6 @@
 		042F1F8F26B0BC1F007D7500 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 042F1F8E26B0BC1F007D7500 /* FirebaseFunctions */; };
 		042F1F9526B22952007D7500 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 042F1F9426B22952007D7500 /* SDWebImageSwiftUI */; };
 		0430697926EACEEC0068DA81 /* CommentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0430697826EACEEC0068DA81 /* CommentViewController.swift */; };
-		0430697B26EAF41D0068DA81 /* FeedReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0430697A26EAF41D0068DA81 /* FeedReviewView.swift */; };
 		0451551D26AE965E00F829F1 /* WebWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0451551C26AE965E00F829F1 /* WebWrapperView.swift */; };
 		0451551F26AE97B900F829F1 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0451551E26AE97B900F829F1 /* ImagePicker.swift */; };
 		0451552426AEACEC00F829F1 /* FirebaseStorageSwift-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 0451552326AEACEC00F829F1 /* FirebaseStorageSwift-Beta */; };
@@ -93,6 +93,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		040881F526F15B1600650ABB /* BookmarkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkViewModel.swift; sourceTree = "<group>"; };
 		0425044226ACBAEB005D135B /* PhotoCaptureProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCaptureProcessor.swift; sourceTree = "<group>"; };
 		0425046826AE5D82005D135B /* PostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewController.swift; sourceTree = "<group>"; };
 		042F1F5C26B0BB2A007D7500 /* PhoneAuthProvider+Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "PhoneAuthProvider+Combine.swift"; sourceTree = "<group>"; };
@@ -110,7 +111,6 @@
 		042F1F6F26B0BB32007D7500 /* WriteBatch+Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "WriteBatch+Combine.swift"; sourceTree = "<group>"; };
 		042F1F7B26B0BB33007D7500 /* RemoteConfig+Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RemoteConfig+Combine.swift"; sourceTree = "<group>"; };
 		0430697826EACEEC0068DA81 /* CommentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentViewController.swift; sourceTree = "<group>"; };
-		0430697A26EAF41D0068DA81 /* FeedReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedReviewView.swift; sourceTree = "<group>"; };
 		0451551C26AE965E00F829F1 /* WebWrapperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebWrapperView.swift; sourceTree = "<group>"; };
 		0451551E26AE97B900F829F1 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		045FDC5D269A916800BCFDB1 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -372,7 +372,6 @@
 			children = (
 				04D0F5B026927B4B006A00BE /* HomeView.swift */,
 				047C372C26E56C0400BEEDD3 /* HomeViewController.swift */,
-				0430697A26EAF41D0068DA81 /* FeedReviewView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -448,6 +447,7 @@
 				047C372E26E5AD8800BEEDD3 /* ReviewTag.swift */,
 				047C373026E5ADDD00BEEDD3 /* Comment.swift */,
 				04D81C7B269B76D00078CE81 /* User.swift */,
+				040881F526F15B1600650ABB /* BookmarkViewModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -554,6 +554,7 @@
 				0425044326ACBAEB005D135B /* PhotoCaptureProcessor.swift in Sources */,
 				0451551D26AE965E00F829F1 /* WebWrapperView.swift in Sources */,
 				047C372D26E56C0400BEEDD3 /* HomeViewController.swift in Sources */,
+				040881F626F15B1600650ABB /* BookmarkViewModel.swift in Sources */,
 				04D2FF57269A530F00672692 /* LandingView.swift in Sources */,
 				0451551F26AE97B900F829F1 /* ImagePicker.swift in Sources */,
 				04C985A626A2061E00A1D368 /* ReviewView.swift in Sources */,
@@ -595,7 +596,6 @@
 				04A64F1A269FA5E1007F01BB /* BusinessView.swift in Sources */,
 				04D0F5B126927B4B006A00BE /* HomeView.swift in Sources */,
 				04D81C90269E245D0078CE81 /* SettingsView.swift in Sources */,
-				0430697B26EAF41D0068DA81 /* FeedReviewView.swift in Sources */,
 				047C373326E6C5CE00BEEDD3 /* ProfileViewController.swift in Sources */,
 				04D0F5B326927B9C006A00BE /* ToolbarContentView.swift in Sources */,
 				042F1F8326B0BB33007D7500 /* Query+Combine.swift in Sources */,

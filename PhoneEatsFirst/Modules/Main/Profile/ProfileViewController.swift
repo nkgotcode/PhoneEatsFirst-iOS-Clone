@@ -36,26 +36,13 @@ class ProfileViewController: UIViewController {
     scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
     view.addSubview(scrollView)
     
+    if profilePictureModel != nil {
+      profileImageView = profilePictureModel.imgView
+    } else {
     profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate))
-//    if profilePictureModel == nil {
-//      self.profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
-//    } else {
-//      profileImageView = profilePictureModel.imgView
-//    }
-    profileImageView.sd_setImage(with: URL(string: user.profileImageUrl!), completed: {
-      [self]
-      downloadedImage, error, cacheType, url in
-      if let error = error {
-        print("error downloading image: \(error.localizedDescription)")
-        profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
-
-      }
-      else {
-        print("successfully downloaded: \(String(describing: url))")
-        profileImageView.image = downloadedImage!
-      }
-    })
     profilePictureModel = ProfilePictureModel(user: user, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: profileImageView)
+    profileImageView = profilePictureModel.imgView
+    }
     
     profileImageView.frame = CGRect(x: 0, y: 0, width: 120, height: 120)
     profileImageView.contentMode = .scaleAspectFit
@@ -171,7 +158,7 @@ class ProfileViewController: UIViewController {
     followedButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 200))
     followedButton.setTitle("Following", for: .normal)
     followedButton.titleLabel?.font = followedButton.titleLabel?.font.withSize(16).bold
-//    followedButton.layer.borderColor = UIColor.systemPink.cgColor
+    followedButton.layer.borderColor = UIColor.systemPink.cgColor
     followedButton.layer.borderWidth = 2
     followedButton.layer.cornerRadius = 10
 //    followButton.translatesAutoresizingMaskIntoConstraints = false
@@ -227,7 +214,6 @@ class ProfileViewController: UIViewController {
       let review = repository.getReview(id: reviewID)
       let tagObjects = repository.getTagObjects(reviewID: reviewID)
       let reviewView = ReviewViewController(review: review!, tagObjects: tagObjects)
-      reviewView.profileVC = self
       reviewsVStack.spacing = reviewView.view.frame.height + 8
       addChild(reviewView)
       reviewView.didMove(toParent: self)
@@ -389,7 +375,7 @@ class ProfilePictureModel: ObservableObject {
   var user: User!
   
   init(user: User, profileImage: UIImage, imgView: UIImageView) {
-    if user.profileImageUrl != nil {
+    if user.profileImageUrl != "" || user.profileImageUrl != nil {
       imgView.sd_setImage(with: URL(string: user.profileImageUrl!), completed: { [self]
         downloadedImage, error, cacheType, url in
         if let error = error {
@@ -401,11 +387,10 @@ class ProfilePictureModel: ObservableObject {
         }
       })
   
-    } else {
-      self.profileImage = profileImage.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
     }
+    self.profileImage = profileImage
     self.user = user
-    self.imgView = imgView
+    self.imgView = UIImageView(image: self.profileImage)
   }
   
   func registerNewChange() {

@@ -10,10 +10,11 @@ import Resolver
 
 class MainViewController: UITabBarController {
   @Injected private var repository: DataRepository
-
+//  var bookmarkViewModel: BookmarkViewModel = BookmarkViewModel()
+  
   override func viewDidLoad() {
     super.viewDidLoad()
-
+    
     let addFriendButtonItem = UIBarButtonItem(
       image: UIImage(systemName: "person.badge.plus"),
       style: .plain,
@@ -48,6 +49,8 @@ class MainViewController: UITabBarController {
       tag: 0
     )
 
+//    let bookmarkViewModel = BookmarkViewModel()
+//    bookmarkViewModel.bookmarked = repository.user!.bookmarks
     let discoverViewController = UIHostingController(rootView: DiscoverView(user: repository.user!))
     discoverViewController.title = "Discover"
     discoverViewController.navigationItem.leftBarButtonItem = addFriendButtonItem

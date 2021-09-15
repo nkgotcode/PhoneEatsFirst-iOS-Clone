@@ -12,11 +12,10 @@ import SwiftUI
 struct DiscoverListView: View {
   @Environment(\.presentationMode) private var presentationMode
   @Injected private var repository: DataRepository
-
+//  @ObservedObject var bookmarkViewModel: BookmarkViewModel = BookmarkViewModel()
   @State private var chosenBusiness: Business? = nil
   @State private var presentingBusinessView: Bool = false
-  @State var isBookmarked: Bool!
-  
+//  @State var isBookmarked: Bool!
   var user: User
 
   var body: some View {
@@ -79,14 +78,33 @@ struct DiscoverListView: View {
   //                    Image(systemName: "square.and.arrow.up")
   //                  }
 
-                    Button {
-                      // bookmark
-//                      repository.addUserBookmark(business: business)
-                      print("user bookmarked \(String(describing: business.id))")
-                    } label: {
-                      Image(systemName: "bookmark")
-//                      Image(systemName: repository.isBookmarked(business: business) ? "bookmark.fill" : "bookmark")
-                    }
+//                    Button {
+//                      // bookmark
+////                      if bookmarkViewModel.bookmarked.contains(business.id) {
+////                        bookmarkViewModel.bookmarked.removeAll(where: {$0 == business.id})
+////                      } else {
+////                        bookmarkViewModel.bookmarked.append(business.id)
+////                      }
+////                      bookmarked.toggle()
+//                      bookmarkViewModel.clickedBtn(businessID: business.id!)
+//                      print("user bookmarked \(String(describing: business.id))")
+//                    } label: {
+////                      if let result = bookmarkViewModel.bookmarkDict[business.id] {
+////                        Image(result ? "bookmark.fill" : "bookmark")
+////                      }
+////                      if repository.isBookmarked(business: business) {
+////                        Image(systemName: "bookmark.fill")
+////                      } else {
+////                        Image(systemName: "bookmark")
+////                      }
+//                      Image(systemName: "bookmark")
+////                      Image(systemName: repository.isBookmarked(business: business) ? "bookmark.fill" : "bookmark")
+////                      if bookmarkViewModel.bookmarked.contains(business.id) {
+////                        Image(systemName: "bookmark.fill")
+////                      } else {
+////                        Image(systemName: "bookmark")
+////                      }
+//                    }
                   }
                 }
                 .padding(.horizontal)
@@ -106,11 +124,7 @@ struct DiscoverListView: View {
         } // ForEach
         .padding()
         .sheet(item: $chosenBusiness) { business in
-          if user.bookmarks.contains(business.id!) {
-            BusinessView(business: business, isBookmarked: true).accentColor(.pink)
-          } else {
-            BusinessView(business: business, isBookmarked: false).accentColor(.pink)
-          }
+          BusinessView(business: business).accentColor(.pink)
         }
       } // LazyVGrid
       .toolbar {
@@ -123,28 +137,3 @@ struct DiscoverListView: View {
     } // ScrollView
   }
 }
-
-struct BookmarkButtonView: UIViewRepresentable {
-  @Injected private var repository: DataRepository
-  @Binding var isBookmarked: Bool
-  var user: User
-  
-  func makeUIView(context: Context) -> some UIView {
-    UIButton()
-  }
-  
-  func updateUIView(_ uiView: UIViewType, context: Context) {
-    if isBookmarked {
-//      uiView.
-    }
-  }
-}
-
-//struct DiscoverListView_Previews: PreviewProvider {
-//  static var previews: some View {
-//    Group {
-//      DiscoverListView()
-//        .environmentObject(DataRepository())
-//    }
-//  }
-//}

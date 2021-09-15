@@ -20,7 +20,14 @@ enum Weekday: Int, Codable {
   case Sat = 7
 }
 
-struct Business: Codable, Identifiable {
+struct Business: Codable, Identifiable, Hashable {
+  static func == (lhs: Business, rhs: Business) -> Bool {
+    return lhs.id == rhs.id
+  }
+  func hash(into hasher: inout Hasher) {
+      hasher.combine(id)
+  }
+  
   @DocumentID var id: String?
   var name: String
   var address: String

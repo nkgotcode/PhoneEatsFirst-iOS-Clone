@@ -11,7 +11,7 @@ import SwiftUI
 struct RootView: View {
   @InjectedObject private var repository: DataRepository
 
-  @State private var presentingSplashScreen: Bool = true
+  @State private var presentingSplashScreen: Bool = false
 
   var body: some View {
     ZStack {

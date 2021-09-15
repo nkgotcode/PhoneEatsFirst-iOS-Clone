@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Resolver
 
 enum ListMode: Int {
   case list
@@ -21,6 +22,7 @@ enum FilterMode: String, CaseIterable, Identifiable {
 }
 
 struct DiscoverView: View {
+//  @State var bookmarkViewModel: BookmarkViewModel
   @State var presentingFilterView = false
   @State var pickerSelection: ListMode = .list
   @State var filterListMode: FilterMode = .popular

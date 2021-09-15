@@ -24,7 +24,7 @@ struct BusinessView: View {
   @State private var presentingInfoView: Bool = false
   @State private var pickerSelection: ViewMode = .info
   @State private var presentingActivityView: Bool = false
-  @State var isBookmarked: Bool!
+  @ObservedObject var bookmarkViewModel: BookmarkViewModel = BookmarkViewModel()
 
   var body: some View {
       NavigationView {
@@ -82,10 +82,10 @@ struct BusinessView: View {
                   Divider().frame(width: 4)
 
                   Button {
-                    isBookmarked?.toggle()
+                    bookmarkViewModel.clickedBtn(businessID: business.id!)
                     print("bookmark restaurant")
                   } label: {
-                    if isBookmarked! {
+                    if bookmarkViewModel.checkBookmark(businessID: business.id!) {
                       Image(systemName: "bookmark.fill")
                         .font(.title)
                         .frame(width: 36, height: 36)
@@ -126,7 +126,7 @@ struct BusinessView: View {
             }
             .pickerStyle(.segmented)
             .padding(8)
-            
+            // main content view
             if pickerSelection == .info {
               InfoView(business: business).padding()
             }
@@ -135,28 +135,6 @@ struct BusinessView: View {
                 ReviewsView(reviews: arr)
               }
             }
-            // main content view
-//            GeometryReader { pageGeo in
-//              PageView(selection: $pickerSelection, indexDisplayMode: .never) {
-////                VStack {
-//                GeometryReader { g in
-//                  InfoView(business: business).tag(ViewMode.info)
-//                    .frame(width: g.size.width, height: g.size.height, alignment: .top)
-//                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-//                    .ignoresSafeArea(.all, edges: .bottom)
-//                    .padding(.horizontal, 8)
-//                }
-////                }
-//                // TODO: add review view here
-//                //              ReviewView().tag(ViewMode.reviews)
-//              }
-//              .frame(width: pageGeo.frame(in: .local).size.width, height: pageGeo.frame(in: .local).size.height, alignment: .top)
-//              .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-//              .ignoresSafeArea(.all, edges: .bottom)
-//            }
-//            GeometryReader { g in
-//              BusinessInfoWrapper(business: business)
-//            }
           } // VStack
 //          .frame(width: geometry.size.width, height: geometry.size.height)
           .toolbar {
@@ -172,6 +150,9 @@ struct BusinessView: View {
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .top)
       .edgesIgnoringSafeArea(.all)
     } // NavigationView
+      .onAppear {
+        bookmarkViewModel.load()
+      }
   }
 }
 
@@ -356,6 +337,7 @@ struct ReviewsView: View {
             .sheet(isPresented: $presentingReview) {
               // TODO: implement review view, get chosen view to be presented
 //              ReviewView().accentColor(Color.pink)
+              ReviewViewBusinessWrapper(review: review, tagObjects: repository.getTagObjects(reviewID: review.id!))
             }
           } // ForEach
           .padding()
@@ -366,6 +348,21 @@ struct ReviewsView: View {
       } // ScrollView
     }
   }
+}
+
+struct ReviewViewBusinessWrapper: UIViewControllerRepresentable {
+  typealias UIViewControllerType = ReviewViewController
+  var review: Review
+  var tagObjects: [ReviewTag]
+  func makeUIViewController(context: Context) -> ReviewViewController {
+    let reviewVC = ReviewViewController(review: review, tagObjects: tagObjects)
+    return reviewVC
+  }
+  
+  func updateUIViewController(_ uiViewController: ReviewViewController, context: Context) {
+    
+  }
+  
 }
 
 // TODO: sticky header

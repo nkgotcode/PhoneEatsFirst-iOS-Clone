@@ -145,18 +145,14 @@ extension HomeViewController: UICollectionViewDelegate {
     let tags = repository.getTagObjects(reviewID: reviewID)
     let chosenUser = repository.getUser(id: review!.userId)
     let profilePictureModel = ProfilePictureModel(user: chosenUser!, profileImage: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate), imgView: UIImageView())
-    let feedReviewVC = FeedReviewView()
-    feedReviewVC.review = review
-    feedReviewVC.tagObjects = tags
-    feedReviewVC.profilePictureModel = profilePictureModel
     let reviewVC = ReviewViewController(review: review!, tagObjects: tags)
     reviewVC.profilePictureModel = profilePictureModel
 
-    if #available(iOS 15.0, *) {
-      navigationController?.present(reviewVC, animated: true, completion: nil)
-    } else {
+//    if #available(iOS 15.0, *) {
+//      navigationController?.present(reviewVC, animated: true, completion: nil)
+//    } else {
       navigationController?.pushViewController(reviewVC, animated: true)
-    }
+//    }
   }
   
 }

@@ -13,7 +13,7 @@ import FirebaseFirestore
 class CommentViewController: UIViewController {
   @Injected private var repository: DataRepository
   var review: Review!
-  var comments: [Comment]!
+  var comments = [Comment]()
   var commentField: UITextField!
   var commentBtn: UIButton!
   var tv: UITableView!
@@ -24,7 +24,7 @@ class CommentViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.comments = repository.getComments(reviewID: review.id!)
+    
     tv = UITableView()
     tv.translatesAutoresizingMaskIntoConstraints = false
     tv.delegate = self
@@ -96,19 +96,19 @@ class CommentViewController: UIViewController {
   }
   
   override func viewWillAppear(_ animated: Bool) {
-    self.listener = repository.firestore.collection(repository.reviewPath).document(review.id!)
-      .addSnapshotListener {
-      documentSnapshot, err in
-      guard let document = documentSnapshot else {
-        print("Error fetching document: \(err!)")
-        return
-      }
-        guard let data = document.data() else {
-          print("Document data was empty.")
-          return
-        }
-        print("Current data: \(data)")
-    }
+//    self.listener = repository.firestore.collection(repository.reviewPath).document(review.id!)
+//      .addSnapshotListener {
+//      documentSnapshot, err in
+//      guard let document = documentSnapshot else {
+//        print("Error fetching document: \(err!)")
+//        return
+//      }
+//        guard let data = document.data() else {
+//          print("Document data was empty.")
+//          return
+//        }
+//        print("Current data: \(data)")
+//    }
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -121,7 +121,7 @@ class CommentViewController: UIViewController {
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    listener.remove()
+//    listener.remove()
   }
   
 //  @objc func hideKeyboardScroll() {
@@ -171,6 +171,12 @@ extension CommentViewController: UITableViewDelegate, UITableViewDataSource {
       return c
     }
     
+//    let dispatch = DispatchGroup()
+//    dispatch.enter()
+    comments = repository.getComments(review: review)
+//    dispatch.leave()
+    
+//    dispatch.notify(queue: .main) { [self] in
     // first row for user's review
     if indexPath.row == 0 {
       let reviewUser = repository.getUser(id: review.userId)
@@ -188,22 +194,26 @@ extension CommentViewController: UITableViewDelegate, UITableViewDataSource {
            cell.profileImageView.image = downloadedImage!
          }
       })
-    } else { // rest of table for comments
-      let commentUser = repository.getUser(id: comments[indexPath.row - 1].uid)
-      cell.userLabel.text = commentUser?.username
-      cell.comment.text = comments[indexPath.row - 1].comment
-      cell.timestamp.text = repository.getDisplayTimestamp(creationDate: comments[indexPath.row - 1].creationDate!)
-      cell.profileImageView.sd_setImage(with: URL(string: (commentUser?.profileImageUrl)!), completed: { 
-         downloadedImage, error, cacheType, url in
-         if let error = error {
-           print("error downloading image: \(error.localizedDescription)")
-           cell.profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
-         }
-         else {
-           print("successfully downloaded: \(String(describing: url))")
-           cell.profileImageView.image = downloadedImage!
-         }
-      })
+    } else {
+      if comments.count <= 0 {
+        
+      } else {// rest of table for comments
+        let commentUser = repository.getUser(id: comments[indexPath.row - 1].uid)
+        cell.userLabel.text = commentUser?.username
+        cell.comment.text = comments[indexPath.row - 1].comment
+        cell.timestamp.text = repository.getDisplayTimestamp(creationDate: comments[indexPath.row - 1].creationDate!)
+        cell.profileImageView.sd_setImage(with: URL(string: (commentUser?.profileImageUrl)!), completed: {
+           downloadedImage, error, cacheType, url in
+           if let error = error {
+             print("error downloading image: \(error.localizedDescription)")
+             cell.profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
+           }
+           else {
+             print("successfully downloaded: \(String(describing: url))")
+             cell.profileImageView.image = downloadedImage!
+           }
+        })
+      }
     }
     return cell
   }
@@ -299,7 +309,7 @@ extension CommentViewController: UITextFieldDelegate {
             return
           }
           self.review = self.review.initFromDocument(data: data)
-          self.comments = repository.getComments(reviewID: review.id!)
+          self.comments = repository.getComments(review: review)
           print("Current data: \(data)")
           
       }
