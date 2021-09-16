@@ -28,12 +28,20 @@ class ProfileViewController: UIViewController {
   var profilePictureModel: ProfilePictureModel!
   
   override func viewDidLoad() {
+    super.viewDidLoad()
     view.backgroundColor = .systemBackground
+    
+    NotificationCenter.default.addObserver(self, selector: #selector(onPostNotification), name: PostViewController.postNotification, object: nil)
+    
+    let refreshControl = UIRefreshControl()
+    refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+    
     scrollView = UIScrollView(frame: view.safeAreaLayoutGuide.layoutFrame)
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.isScrollEnabled = true
     scrollView.contentSize = CGSize(width: 400, height: view.frame.height)
     scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
+    scrollView.refreshControl = refreshControl
     view.addSubview(scrollView)
     
     profileImageView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate))
@@ -289,6 +297,26 @@ class ProfileViewController: UIViewController {
   
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
+  }
+  
+  @objc func refreshData(refresh: UIRefreshControl) {
+    user = repository.user
+    let parent = self.view.superview
+    self.view.removeFromSuperview()
+    self.view = nil
+    parent?.addSubview(self.view)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+      refresh.endRefreshing()
+    }
+  }
+  
+  @objc func onPostNotification() {
+    user = repository.user
+    let parent = self.view.superview
+    self.view.removeFromSuperview()
+    self.view = nil
+    parent?.addSubview(self.view)
+    print("got post noti")
   }
   
   @objc func followedBtnPressed() {

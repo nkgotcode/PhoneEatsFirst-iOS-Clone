@@ -34,11 +34,14 @@ class PostViewController: UIViewController, UITextViewDelegate, UISearchBarDeleg
   var tags: [String]!
   var tagObjects: [ReviewTag]!
   var textView: UITextView!
+  static let postNotification = Notification.Name("post review")
 
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
     title = NSLocalizedString("Posting", comment: "")
+    
+    NotificationCenter.default.addObserver(self, selector: #selector(onNotification(notification:)), name: PostViewController.postNotification, object: nil)
 
     loadingHud = JGProgressHUD()
     loadingHud.textLabel.text = "Posting..."
@@ -235,6 +238,10 @@ class PostViewController: UIViewController, UITextViewDelegate, UISearchBarDeleg
 //    present(navigationController, animated: true, completion: nil)
 //  }
   
+  @objc func onNotification(notification: Notification) {
+    print("post noti")
+  }
+  
   @objc func uploadImage() {
     loadingHud.show(in: view)
 //    guard let description = textView.text else { return }
@@ -243,10 +250,13 @@ class PostViewController: UIViewController, UITextViewDelegate, UISearchBarDeleg
     }
     repository.uploadPost(image: image, description: nil, businessId: taggedBusinessID!, foodRating: foodStars.rating, serviceRating: serviceStars.rating, atmosphereRating: atmosphereStars.rating, valueRating: valueStars.rating, tags: tags, tagObjects: tagObjects, additionalComment: textView.text)
     
+    NotificationCenter.default.post(name: PostViewController.postNotification, object: self)
+    
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
       // posting done
       self.loadingHud.dismiss(animated: true)
       self.navigationController?.popToRootViewController(animated: true)
+      NotificationCenter.default.removeObserver(self)
     }
   }
 

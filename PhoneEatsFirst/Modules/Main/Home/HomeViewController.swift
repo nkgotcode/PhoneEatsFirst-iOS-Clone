@@ -29,6 +29,12 @@ class HomeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     self.reviewID = user.userReviewsID
+    
+    NotificationCenter.default.addObserver(self, selector: #selector(onPostNotification), name: PostViewController.postNotification, object: nil)
+    
+    let refreshControl = UIRefreshControl()
+    refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+    
     followingReview = repository.getFollowingReviews(following: user.following)
     self.reviewID?.append(contentsOf: followingReview)
     
@@ -36,6 +42,7 @@ class HomeViewController: UIViewController {
     scrollView.backgroundColor = .systemBackground
     scrollView.isScrollEnabled = true
     scrollView.translatesAutoresizingMaskIntoConstraints = false
+    scrollView.refreshControl = refreshControl
     view.addSubview(scrollView)
     
     if (reviewID!.count <= 0) {
@@ -73,6 +80,27 @@ class HomeViewController: UIViewController {
     self.layout!.containerWidth = width
     self.layout?.display = self.view.traitCollection.horizontalSizeClass == .compact && self.view.traitCollection.verticalSizeClass == .regular ? CollectionDisplay.list : CollectionDisplay.grid(columns: 2)
   }
+  
+  @objc func refreshData(refresh: UIRefreshControl) {
+    user = repository.user
+    let parent = self.view.superview
+    self.view.removeFromSuperview()
+    self.view = nil
+    parent?.addSubview(self.view)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+      refresh.endRefreshing()
+    }
+  }
+  
+  @objc func onPostNotification() {
+    user = repository.user
+    let parent = self.view.superview
+    self.view.removeFromSuperview()
+    self.view = nil
+    parent?.addSubview(self.view)
+    print("got post noti")
+  }
+  
 }
 
 extension HomeViewController: UICollectionViewDelegateFlowLayout {

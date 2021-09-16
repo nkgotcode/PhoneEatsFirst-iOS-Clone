@@ -251,7 +251,7 @@ final class DataRepository: ObservableObject {
       let totalRatings = (foodRating + serviceRating + atmosphereRating + valueRating) / 4
       
       // uploading the review object to firestore
-      let review = Review(
+    var review = Review(
         id: postId, description: description, userId: uid, businessId: businessId, imageUrl: url, foodRating: foodRating, serviceRating: serviceRating, atmosphereRating: atmosphereRating, valueRating: valueRating, rating: totalRatings, tags: tags, comments: [], likes: [], edited: false, additionalComment: additionalComment, creationDate: nil)
       
       _ = self.firestore.collection(self.reviewPath).document(postId).setData(from: review)
@@ -259,6 +259,8 @@ final class DataRepository: ObservableObject {
       // append reviewID to user object
       var userReviewsID = self.user?.userReviewsID
       userReviewsID?.append(postId)
+      user?.userReviewsID = userReviewsID!
+    
       self.firestore.collection(userPath).document(uid).updateData([
         "userReviewsID": userReviewsID!])
     
@@ -271,6 +273,7 @@ final class DataRepository: ObservableObject {
         }
       }
       // populate local version
+    review.creationDate = Timestamp(date: Date())
     self.reviews.append(review)
   }
 
@@ -496,10 +499,12 @@ final class DataRepository: ObservableObject {
   func addUserBookmark(business: Business) {
     var bookmarks = user?.bookmarks
     bookmarks?.append(business.id!)
+    user?.bookmarks = bookmarks!
     firestore.collection(userPath).document(user!.id).updateData(["bookmarks" : FieldValue.arrayUnion([business.id!])])
   }
 
   func deleteUserBookmark(business: Business) {
+    user?.bookmarks.removeAll(where: { $0 == business.id })
     firestore.collection(userPath).document(user!.id).updateData(["bookmarks" : FieldValue.arrayRemove([business.id!])])
   }
 
