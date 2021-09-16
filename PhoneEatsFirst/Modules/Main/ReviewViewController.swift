@@ -33,6 +33,7 @@ class ReviewViewController: UIViewController {
   var userDetailHStack: UIStackView!
   var isLiked: Bool!
   var isBookmarked: Bool!
+//  var comments: [Comment]!
   
   init(review: Review, tagObjects: [ReviewTag]) {
     self.review = review
@@ -356,6 +357,7 @@ class ReviewViewController: UIViewController {
   @objc func commentBtnPressed() {
     let commentVC = CommentViewController()
     commentVC.review = review
+//    commentVC.comments = comments
     navigationController?.pushViewController(commentVC, animated: true)
     print("comment button pressed")
   }

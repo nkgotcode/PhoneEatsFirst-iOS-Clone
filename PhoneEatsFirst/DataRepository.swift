@@ -75,6 +75,11 @@ final class DataRepository: ObservableObject {
       .replaceError(with: [])
       .assign(to: \.reviews, on: self)
       .store(in: &cancellables)
+    
+    firestore.collection(commentPath).publisher(as: Comment.self)
+      .replaceError(with: [])
+      .assign(to: \.comments, on: self)
+      .store(in: &cancellables)
   }
 
   deinit {
@@ -109,51 +114,12 @@ final class DataRepository: ObservableObject {
   func getComments(review: Review) -> [Comment] {
     var ret: [Comment] = []
     
-//    firestore.collection(reviewPath).document(review.id!).getDocument {
-//      snapshot, err in
-//      if err != nil {
-//        print(err?.localizedDescription)
-//      } else {
-//        print(snapshot)
-//        let data = snapshot?.data()
-//        print(data)
-//      }
-//    }
-    firestore.collection(reviewPath).document(review.id!).collection(commentPath).getDocuments {
-      querrySnapshot, err in
-      if let err = err {
-        print("Error getting documents: \(err)")
-      }
-      else {
-        // for loop getting each comment
-        for doc in querrySnapshot!.documents {
-          let data = doc.data()
-          print(data)
-          var comment: String = ""
-          var uid: String = ""
-          var creationDate: Timestamp?
-
-          for d in data {
-            switch(d.key) {
-              case "comment": comment = d.value as! String
-              case "uid": uid = d.value as! String
-              case "creationDate": creationDate = d.value as? Timestamp
-              default: return
-            }
-          }
-          let c = Comment(id: doc.documentID, comment: comment, uid: uid, creationDate: creationDate)
-          print(c)
-          ret.append(c)
-          print(ret)
-        }
-      }
+    for commentID in review.comments {
+      let comment = comments.first(where: {$0.id == commentID})
+      ret.append(comment!)
     }
     return ret
   }
-  
-//  func getBookmarkModel() -> BookmarkModel {
-//
-//  }
   
   func getFollowingReviews(following: [String]) -> [String] {
     var ret: [String] = []
@@ -401,8 +367,8 @@ final class DataRepository: ObservableObject {
   }
   
   func uploadComment(comment: Comment, review: Review, commentIDs: [String]) {
-    self.comments.append(comment)
-    var upload = firestore.collection(self.reviewPath).document(review.id!).collection(commentPath).document(comment.id!).setData(from: comment)
+//    self.comments.append(comment)
+    var upload = firestore.collection(self.commentPath).document(comment.id!).setData(from: comment)
 
     firestore.collection(reviewPath).document(review.id!).updateData(["comments": review.comments])
   }

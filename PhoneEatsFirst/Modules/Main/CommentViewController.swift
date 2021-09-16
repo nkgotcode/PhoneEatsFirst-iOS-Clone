@@ -5,26 +5,26 @@
 //  Created by itsnk on 9/9/21.
 //
 
-import Foundation
-import UIKit
-import Resolver
 import FirebaseFirestore
+import Foundation
+import Resolver
+import UIKit
 
 class CommentViewController: UIViewController {
   @Injected private var repository: DataRepository
   var review: Review!
-  var comments = [Comment]()
+  var comments: [Comment]!
   var commentField: UITextField!
   var commentBtn: UIButton!
   var tv: UITableView!
   var listener: ListenerRegistration!
   var openTextBtn: UIButton!
   // This constraint ties an element at zero points from the bottom layout guide
-   @IBOutlet var keyboardHeightLayoutConstraint: NSLayoutConstraint?
-  
+  @IBOutlet var keyboardHeightLayoutConstraint: NSLayoutConstraint?
+
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+    comments = repository.getComments(review: review)
     tv = UITableView()
     tv.translatesAutoresizingMaskIntoConstraints = false
     tv.delegate = self
@@ -34,7 +34,7 @@ class CommentViewController: UIViewController {
     tv.isUserInteractionEnabled = false
     tv.isScrollEnabled = true
     view.addSubview(tv)
-    
+
     commentBtn = UIButton()
     commentBtn.setImage(UIImage(systemName: "arrow.up.circle"), for: .normal)
     commentBtn.tintColor = .systemPink
@@ -42,7 +42,7 @@ class CommentViewController: UIViewController {
     commentBtn.translatesAutoresizingMaskIntoConstraints = false
     commentBtn.isUserInteractionEnabled = true
     commentBtn.addTarget(self, action: #selector(postcommentBtnPressed), for: .touchUpInside)
-    
+
     commentField = CustomCommentField()
     commentField.placeholder = "Leave a comment.."
     commentField.layer.borderColor = UIColor.systemPink.cgColor
@@ -53,11 +53,11 @@ class CommentViewController: UIViewController {
     commentField.textColor = .systemPink
     commentField.delegate = self
     commentField.translatesAutoresizingMaskIntoConstraints = false
-    
+
     openTextBtn = UIButton()
     openTextBtn.addTarget(self, action: #selector(textFieldPressed), for: .touchUpInside)
     openTextBtn.translatesAutoresizingMaskIntoConstraints = false
-    
+
     let commentTable = UITableViewCell()
     commentTable.selectionStyle = .none
     commentTable.translatesAutoresizingMaskIntoConstraints = false
@@ -65,168 +65,165 @@ class CommentViewController: UIViewController {
     commentTable.addSubview(commentField)
     commentTable.addSubview(commentBtn)
     commentTable.addSubview(openTextBtn)
-    
+
     NSLayoutConstraint.activate([
       tv.topAnchor.constraint(equalTo: view.topAnchor),
       tv.bottomAnchor.constraint(equalTo: view.bottomAnchor),
       tv.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       tv.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      
+
       commentTable.bottomAnchor.constraint(equalTo: view.bottomAnchor),
       commentTable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2),
       commentTable.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       commentTable.heightAnchor.constraint(equalToConstant: 50),
-      
+
       commentField.topAnchor.constraint(equalTo: commentTable.topAnchor),
       commentField.bottomAnchor.constraint(equalTo: commentTable.bottomAnchor),
       commentField.leadingAnchor.constraint(equalTo: commentTable.leadingAnchor),
       commentField.trailingAnchor.constraint(equalTo: commentBtn.leadingAnchor),
-      
+
       commentBtn.topAnchor.constraint(equalTo: commentTable.topAnchor),
       commentBtn.bottomAnchor.constraint(equalTo: commentTable.bottomAnchor),
       commentBtn.trailingAnchor.constraint(equalTo: commentTable.trailingAnchor),
       commentBtn.widthAnchor.constraint(equalToConstant: 50),
       commentBtn.heightAnchor.constraint(equalToConstant: 50),
-      
+
       openTextBtn.topAnchor.constraint(equalTo: commentTable.topAnchor),
       openTextBtn.bottomAnchor.constraint(equalTo: commentTable.bottomAnchor),
       openTextBtn.leadingAnchor.constraint(equalTo: commentTable.leadingAnchor),
       openTextBtn.trailingAnchor.constraint(equalTo: commentBtn.leadingAnchor),
     ])
   }
-  
+
   override func viewWillAppear(_ animated: Bool) {
-//    self.listener = repository.firestore.collection(repository.reviewPath).document(review.id!)
-//      .addSnapshotListener {
-//      documentSnapshot, err in
-//      guard let document = documentSnapshot else {
-//        print("Error fetching document: \(err!)")
-//        return
-//      }
-//        guard let data = document.data() else {
-//          print("Document data was empty.")
-//          return
-//        }
-//        print("Current data: \(data)")
-//    }
+    tv.reloadData()
   }
-  
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    tv.reloadData()
     commentField.textRect(forBounds: commentField.bounds)
     commentField.editingRect(forBounds: commentField.bounds)
     commentField.becomeFirstResponder()
     openTextBtn.isEnabled = false
-    NotificationCenter.default.addObserver(self, selector: #selector(CommentViewController.showKeyboardNotification(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(CommentViewController.showKeyboardNotification(notification:)),
+      name: UIResponder.keyboardWillShowNotification,
+      object: nil
+    )
   }
-  
+
   override func viewWillDisappear(_ animated: Bool) {
-//    listener.remove()
   }
-  
-//  @objc func hideKeyboardScroll() {
-//    commentField.resignFirstResponder()
-//  }
-  
+
   @objc func textFieldPressed() {
     commentField.becomeFirstResponder()
     openTextBtn.isEnabled = false
   }
-  
+
   @objc func showKeyboardNotification(notification: NSNotification) {
     guard let userInfo = notification.userInfo else { return }
 
-     let endFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
-     let endFrameY = endFrame?.origin.y ?? 0
-     let duration:TimeInterval = (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
-     let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
-     let animationCurveRaw = animationCurveRawNSN?.uintValue ?? UIView.AnimationOptions.curveEaseInOut.rawValue
-     let animationCurve:UIView.AnimationOptions = UIView.AnimationOptions(rawValue: animationCurveRaw)
+    let endFrame = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
+    let endFrameY = endFrame?.origin.y ?? 0
+    let duration: TimeInterval =
+      (userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0
+    let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
+    let animationCurveRaw = animationCurveRawNSN?.uintValue ?? UIView.AnimationOptions
+      .curveEaseInOut.rawValue
+    let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw)
 
-     if endFrameY >= UIScreen.main.bounds.size.height {
-       self.keyboardHeightLayoutConstraint?.constant = 0.0
-     } else {
-       self.keyboardHeightLayoutConstraint?.constant = endFrame?.size.height ?? 0.0
-     }
+    if endFrameY >= UIScreen.main.bounds.size.height {
+      keyboardHeightLayoutConstraint?.constant = 0.0
+    } else {
+      keyboardHeightLayoutConstraint?.constant = endFrame?.size.height ?? 0.0
+    }
 
-     UIView.animate(
-       withDuration: duration,
-       delay: TimeInterval(0),
-       options: animationCurve,
-       animations: { self.view.layoutIfNeeded() },
-       completion: nil)
+    UIView.animate(
+      withDuration: duration,
+      delay: TimeInterval(0),
+      options: animationCurve,
+      animations: { self.view.layoutIfNeeded() },
+      completion: nil
+    )
   }
 }
 
 extension CommentViewController: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return review.comments.count + 1
+    review.comments.count + 1
   }
-  
+
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    guard let cell = tableView.dequeueReusableCell(withIdentifier: "comment", for: indexPath) as? CommentCell
+    guard let cell = tableView.dequeueReusableCell(
+      withIdentifier: "comment",
+      for: indexPath
+    ) as? CommentCell
     else {
       let c = UITableViewCell()
       c.isHidden = true
       return c
     }
-    
-//    let dispatch = DispatchGroup()
-//    dispatch.enter()
-    comments = repository.getComments(review: review)
-//    dispatch.leave()
-    
-//    dispatch.notify(queue: .main) { [self] in
+
     // first row for user's review
     if indexPath.row == 0 {
       let reviewUser = repository.getUser(id: review.userId)
       cell.userLabel.text = reviewUser?.username
+      cell.userLabel.textColor = UIColor.systemPink
       cell.comment.text = review.additionalComment
       cell.timestamp.text = repository.getDisplayTimestamp(creationDate: review.creationDate!)
-      cell.profileImageView.sd_setImage(with: URL(string: (reviewUser?.profileImageUrl)!), completed: {
-         downloadedImage, error, cacheType, url in
-         if let error = error {
-           print("error downloading image: \(error.localizedDescription)")
-           cell.profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
-         }
-         else {
-           print("successfully downloaded: \(String(describing: url))")
-           cell.profileImageView.image = downloadedImage!
-         }
-      })
+      cell.profileImageView.sd_setImage(
+        with: URL(string: (reviewUser?.profileImageUrl)!),
+        completed: {
+          downloadedImage, error, cacheType, url in
+          if let error = error {
+            print("error downloading image: \(error.localizedDescription)")
+            cell.profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!
+              .withTintColor(.systemPink, renderingMode: .alwaysTemplate)
+          } else {
+            print("successfully downloaded: \(String(describing: url))")
+            cell.profileImageView.image = downloadedImage!
+          }
+        }
+      )
     } else {
       if comments.count <= 0 {
-        
-      } else {// rest of table for comments
+      } else { // rest of table for comments
         let commentUser = repository.getUser(id: comments[indexPath.row - 1].uid)
         cell.userLabel.text = commentUser?.username
+        cell.userLabel.textColor = UIColor.systemPink
         cell.comment.text = comments[indexPath.row - 1].comment
-        cell.timestamp.text = repository.getDisplayTimestamp(creationDate: comments[indexPath.row - 1].creationDate!)
-        cell.profileImageView.sd_setImage(with: URL(string: (commentUser?.profileImageUrl)!), completed: {
-           downloadedImage, error, cacheType, url in
-           if let error = error {
-             print("error downloading image: \(error.localizedDescription)")
-             cell.profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate)
-           }
-           else {
-             print("successfully downloaded: \(String(describing: url))")
-             cell.profileImageView.image = downloadedImage!
-           }
-        })
+        cell.timestamp.text = repository
+          .getDisplayTimestamp(creationDate: comments[indexPath.row - 1].creationDate!)
+        cell.profileImageView.sd_setImage(
+          with: URL(string: (commentUser?.profileImageUrl)!),
+          completed: {
+            downloadedImage, error, cacheType, url in
+            if let error = error {
+              print("error downloading image: \(error.localizedDescription)")
+              cell.profileImageView.image = UIImage(systemName: "person.crop.circle.fill")!
+                .withTintColor(.systemPink, renderingMode: .alwaysTemplate)
+            } else {
+              print("successfully downloaded: \(String(describing: url))")
+              cell.profileImageView.image = downloadedImage!
+            }
+          }
+        )
       }
     }
     return cell
   }
-  
 }
 
 class CommentCell: UITableViewCell {
   var profileImageView: UIImageView = {
-    let imgView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!.withTintColor(.systemPink, renderingMode: .alwaysTemplate))
+    let imgView = UIImageView(image: UIImage(systemName: "person.crop.circle.fill")!
+      .withTintColor(.systemPink, renderingMode: .alwaysTemplate))
     imgView.translatesAutoresizingMaskIntoConstraints = false
     return imgView
   }()
-  
+
   var userLabel: UILabel = {
     let lbl = UILabel()
     lbl.translatesAutoresizingMaskIntoConstraints = false
@@ -234,7 +231,7 @@ class CommentCell: UITableViewCell {
     lbl.font = UIFont.systemFont(ofSize: 14, weight: .bold)
     return lbl
   }()
-  
+
   let comment: UILabel = {
     let lbl = UILabel()
     lbl.translatesAutoresizingMaskIntoConstraints = false
@@ -242,6 +239,7 @@ class CommentCell: UITableViewCell {
     lbl.font = UIFont.systemFont(ofSize: 14)
     return lbl
   }()
+
   let timestamp: UILabel = {
     let lbl = UILabel()
     lbl.translatesAutoresizingMaskIntoConstraints = false
@@ -249,32 +247,33 @@ class CommentCell: UITableViewCell {
     lbl.font = UIFont.systemFont(ofSize: 12, weight: .light)
     return lbl
   }()
-  
+
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
     addSubview(profileImageView)
     addSubview(userLabel)
     addSubview(comment)
     addSubview(timestamp)
-    
+
     NSLayoutConstraint.activate([
       profileImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
       profileImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
       profileImageView.widthAnchor.constraint(equalToConstant: 40),
       profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
-      
+
       userLabel.topAnchor.constraint(equalTo: topAnchor, constant: 2),
       userLabel.bottomAnchor.constraint(equalTo: comment.topAnchor),
       userLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8),
-      
+
       comment.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8),
-      
+
       timestamp.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8),
       timestamp.topAnchor.constraint(equalTo: comment.bottomAnchor, constant: 4),
       timestamp.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -2),
     ])
   }
-  
+
+  @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
@@ -283,55 +282,61 @@ class CommentCell: UITableViewCell {
 extension CommentViewController: UITextFieldDelegate {
   @objc func postcommentBtnPressed() {
     print("postcommentBtnPressed")
-    
+
     if commentField.text == "" {
       return
     } else {
       // preparing comment to upload
 
-      let commentID = repository.firestore.collection(repository.reviewPath).document(review.id!).collection(repository.commentPath).document().documentID
+      let commentID = repository.firestore.collection(repository.commentPath).document().documentID
 
-      let comment = Comment(id: commentID, comment: commentField.text!, uid: repository.user!.id, creationDate: nil)
+      var comment = Comment(
+        id: commentID,
+        comment: commentField.text!,
+        uid: repository.user!.id,
+        reviewID: review.id!,
+        creationDate: nil
+      )
       review.comments.append(commentID)
       repository.uploadComment(comment: comment, review: review, commentIDs: review.comments)
-      
+      comment.creationDate = Timestamp(date: Date())
+      comments.append(comment)
+      tv.reloadData()
+
       // fetching the latest review document from database
-      self.listener = repository.firestore.collection(repository.reviewPath).document(review.id!)
+      listener = repository.firestore.collection(repository.reviewPath).document(review.id!)
         .addSnapshotListener { [self]
-        documentSnapshot, err in
-        guard let document = documentSnapshot else {
-          print("Error fetching document: \(err!)")
-          return
-        }
+          documentSnapshot, err in
+          guard let document = documentSnapshot else {
+            print("Error fetching document: \(err!)")
+            return
+          }
           // successfully fetches new document
           guard let data = document.data() else {
             print("Document data was empty.")
             return
           }
           self.review = self.review.initFromDocument(data: data)
-          self.comments = repository.getComments(review: review)
+//          self.comments = repository.getComments(review: review)
           print("Current data: \(data)")
-          
-      }
+        }
     }
+//    tv.numberOfRows(inSection: <#T##Int#>)
+//    tv.cellForRow(at: )
     commentField.text?.removeAll()
     commentField.resignFirstResponder()
     openTextBtn.isEnabled = true
   }
-  
-//  func textFieldDidEndEditing(_ textField: UITextField) {
-//
-//  }
 }
 
 class CustomCommentField: UITextField {
   // placeholder position
   override func textRect(forBounds bounds: CGRect) -> CGRect {
-    return bounds.insetBy(dx: 10, dy: 10)
+    bounds.insetBy(dx: 10, dy: 10)
   }
+
   // text position
   override func editingRect(forBounds bounds: CGRect) -> CGRect {
-    return bounds.insetBy(dx: 10, dy: 10);
+    bounds.insetBy(dx: 10, dy: 10)
   }
-  
 }

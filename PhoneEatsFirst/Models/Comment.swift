@@ -13,5 +13,6 @@ struct Comment: Codable, Identifiable {
   @DocumentID var id: String?
   var comment: String
   var uid: String
+  var reviewID: String
   @ServerTimestamp var creationDate: Timestamp?
 }
