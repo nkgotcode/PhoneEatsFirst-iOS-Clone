@@ -419,7 +419,7 @@ class ProfilePictureModel: ObservableObject {
   }
   
   func registerNewChange() {
-    self.profileImage = profileImage.croppedImage(withFrame: CGRect(x: 0, y: 0, width: profileImage.size.width, height: profileImage.size.height), angle: 0, circularClip: true)
+    self.profileImage = profileImage.circle
     self.newProfileChange = false
   }
 }
@@ -430,5 +430,21 @@ extension UIView {
     NSLayoutConstraint.activate([
       subview.topAnchor.constraint(equalTo: previousSubview.topAnchor, constant: 590),
     ])
+  }
+}
+
+extension UIImage {
+  var circle: UIImage {
+      let square = size.width < size.height ? CGSize(width: size.width, height: size.width) : CGSize(width: size.height, height: size.height)
+      let imageView = UIImageView(frame: CGRect(origin: CGPoint(x: 0, y: 0), size: square))
+      imageView.contentMode = UIView.ContentMode.scaleAspectFill
+      imageView.image = self
+      imageView.layer.cornerRadius = square.width/2
+      imageView.layer.masksToBounds = true
+      UIGraphicsBeginImageContext(imageView.bounds.size)
+      imageView.layer.render(in: UIGraphicsGetCurrentContext()!)
+      let result = UIGraphicsGetImageFromCurrentImageContext()
+      UIGraphicsEndImageContext()
+      return result!
   }
 }

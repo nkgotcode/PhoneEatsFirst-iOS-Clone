@@ -402,6 +402,7 @@ final class DataRepository: ObservableObject {
         }
         else {
           print(url)
+          user?.profileImageUrl = url?.absoluteString
           self.firestore.collection(self.userPath).document(uid).updateData([
             "profileImageUrl": url!.absoluteString])
         }
