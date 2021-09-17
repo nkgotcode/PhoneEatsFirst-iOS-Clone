@@ -169,18 +169,7 @@ struct ReviewView: View {
         Spacer()
       }
       .padding(.horizontal, 8)
-      
-//      .padding(.vertical, 8)
-//    } // ScrollView
-
-//    .toolbar {
-//      Button(action: dismissAction, label: {
-//        Text("Done").bold()
-//      })
-//    }
-//    .accentColor(Color.pink)
     }
-//    .navigationBarBackButtonHidden(true)
     .navigationTitle("\(user!.username)'s Review")
     .navigationBarTitleDisplayMode(.inline)
   }
@@ -193,16 +182,31 @@ struct ProfileViewWrapper: UIViewControllerRepresentable {
   class RandomClass { }
   let x = RandomClass()
   
-  func makeUIViewController(context: Context) -> ProfileViewController {
+  class Coordinator {
+      var parentObserver: NSKeyValueObservation?
+  }
+  
+  func makeCoordinator() -> Coordinator {
+    Coordinator()
+  }
+  
+  func makeUIViewController(context: Self.Context) -> ProfileViewController {
     let profile = ProfileViewController()
     profile.user = self.user
     profile.profilePictureModel = self.profilePictureModel
+    context.coordinator.parentObserver = profile.observe(\.parent, changeHandler: { vc, _ in
+//        vc.parent?.title = vc.title
+        vc.parent?.navigationItem.rightBarButtonItems = vc.navigationItem.rightBarButtonItems
+    })
     return profile
   }
   
   func updateUIViewController(_ uiViewController: ProfileViewController, context: Context) {
   }
   
+  func doneBtn() {
+    
+  }
 }
 
 struct CommentViewWrapper: UIViewControllerRepresentable {

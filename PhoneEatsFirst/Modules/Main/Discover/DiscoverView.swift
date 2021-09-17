@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Resolver
+import SDWebImageSwiftUI
 
 enum ListMode: Int {
   case list
@@ -22,21 +23,23 @@ enum FilterMode: String, CaseIterable, Identifiable {
 }
 
 struct DiscoverView: View {
-//  @State var bookmarkViewModel: BookmarkViewModel
+  @Environment(\.presentationMode) private var presentationMode
+  @Injected private var repository: DataRepository
   @State var presentingFilterView = false
   @State var pickerSelection: ListMode = .list
   @State var filterListMode: FilterMode = .popular
-
+  @State var presentingProfileView = false
   @State var searchText: String = ""
-  
   var user: User
 
   var body: some View {
     VStack {
       VStack(spacing: 12) {
         HStack {
-          SearchBar("Search...", text: $searchText)
-
+          VStack {
+            SearchBar("Search...", text: $searchText)
+            
+          }
           // filter button
           Button {
             presentingFilterView = true
@@ -51,6 +54,24 @@ struct DiscoverView: View {
           }
         }
 
+        if searchText != "" {
+          List(repository.users.filter({searchText.isEmpty ? true : $0.username.contains(searchText)})) {
+            user in
+            NavigationLink(destination: ProfileViewWrapper(user: user, profilePictureModel: ProfilePictureModel(user: user, profileImage: UIImage(), imgView: UIImageView()))) {
+            HStack {
+                HStack {
+                  WebImage(url: URL(string: user.profileImageUrl!))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40, alignment: .center)
+                  
+                  Text(user.username).foregroundColor(Color.pink)
+                }
+            }
+          }
+          }
+        }
+        
         // filter bar below search bar
         HStack {
           Menu {
@@ -92,6 +113,27 @@ struct DiscoverView: View {
   }
 }
 
+struct Filter { let user: User; let business: Business }
+
+extension Filter {
+  
+}
+
+//class ProfileViewWrapper: UIViewControllerRepresentable {
+//  typealias UIViewControllerType = ProfileViewController
+//  var user: User?
+//
+//  func makeUIViewController(context: Context) -> ProfileViewController {
+//    let profileVC = ProfileViewController()
+//    profileVC.user = user
+//    return profileVC
+//  }
+//
+//  func updateUIViewController(_ uiViewController: ProfileViewController, context: Context) {
+//
+//  }
+//
+//}
 //struct DiscoverView_Previews: PreviewProvider {
 //  static var previews: some View {
 //    Group {
