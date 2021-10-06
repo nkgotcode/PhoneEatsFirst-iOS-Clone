@@ -24,7 +24,6 @@ class HomeViewController: UIViewController {
   var reviewID: [String]?
   var reviewDict = [Int:String]()
   var followingReview: [String]!
-  var scrollView: UIScrollView!
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -38,42 +37,65 @@ class HomeViewController: UIViewController {
     followingReview = repository.getFollowingReviews(following: user.following)
     self.reviewID?.append(contentsOf: followingReview)
     
-    scrollView = UIScrollView()
-    scrollView.backgroundColor = .systemBackground
-    scrollView.isScrollEnabled = true
-    scrollView.translatesAutoresizingMaskIntoConstraints = false
-    scrollView.refreshControl = refreshControl
-    view.addSubview(scrollView)
-    
     if (reviewID!.count <= 0) {
       return
     }
     else {
       let layout: CustomCollectionViewFlowLayout = CustomCollectionViewFlowLayout(display: .list, containerWidth: view.bounds.size.width)
       layout.sectionInset = UIEdgeInsets(top: 16, left: 8, bottom: 0, right: 8)
-      layout.itemSize = CGSize(width: 120, height: 120)
+      layout.itemSize = CGSize(width: ((view.bounds.size.width - 16 - 8) / 2), height: ((view.bounds.size.width - 16 - 8) / 2))
       
       collectionView = UICollectionView(frame: view.frame, collectionViewLayout: layout)
       collectionView?.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
       collectionView?.delegate = self
       collectionView?.dataSource = self
-      scrollView.contentSize = CGSize(width: 400, height: view.frame.height)
-      scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 4, left: -2, bottom: 4, right: -4)
-      scrollView.addSubview(collectionView!)
+//      collectionView?.translatesAutoresizingMaskIntoConstraints = false
+      view.addSubview(collectionView!)
       
-      NSLayoutConstraint.activate([
-        scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-        scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-        scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-        scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      ])
+    }
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    if (reviewID!.count <= 0) {
+      return
+    } else {
+      collectionView?.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 100, right: 0)
     }
   }
   
   override func viewWillLayoutSubviews() {
-    super.viewWillLayoutSubviews()
+//    super.viewWillLayoutSubviews()
+//    collectionView?.collectionViewLayout.invalidateLayout()
+//    layout?.collectionView?.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+  }
+  
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+
+    guard let previousTraitCollection = previousTraitCollection, traitCollection.verticalSizeClass != previousTraitCollection.verticalSizeClass ||
+        traitCollection.horizontalSizeClass != previousTraitCollection.horizontalSizeClass else {
+            return
+    }
+
+    if traitCollection.horizontalSizeClass == .regular && traitCollection.verticalSizeClass == .regular {
+        // iPad portrait and landscape
+        // do something here...
+      layout?.collectionView?.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+    }
+    if traitCollection.horizontalSizeClass == .compact && traitCollection.verticalSizeClass == .regular {
+        // iPhone portrait
+        // do something here...
+    }
+    if traitCollection.horizontalSizeClass == .regular && traitCollection.verticalSizeClass == .compact {
+        // iPhone landscape
+        // do something here...
+      layout?.collectionView?.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+      layout?.collectionView?.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+      layout?.collectionView?.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+      layout?.collectionView?.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+    }
     collectionView?.collectionViewLayout.invalidateLayout()
-    layout?.collectionView?.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+    collectionView?.reloadData()
   }
   
   private func reloadCollectionViewLayout(_ width: CGFloat) {

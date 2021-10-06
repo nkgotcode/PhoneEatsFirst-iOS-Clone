@@ -10,6 +10,7 @@ import FirebaseFirestoreSwift
 
 struct ReviewTag: Codable, Identifiable {
   @DocumentID var id: String?
+  var reviewID: String
   var x: Double
   var y: Double
   var description: String

@@ -187,7 +187,7 @@ class TagViewController: UIViewController, CropViewControllerDelegate, UIImagePi
         commentTag(sender: button)
         
         let tagID = repository.firestore.collection(repository.reviewTagPath).document().documentID
-        let tag = ReviewTag(id: tagID, x: touchPoint.x, y: touchPoint.y, description: "")
+        let tag = ReviewTag(id: tagID, reviewID: "", x: touchPoint.x, y: touchPoint.y, description: "")
         tags.append(tagID)
         tagObjects.append(tag)
         gestureRecognizer.view?.addSubview(button)

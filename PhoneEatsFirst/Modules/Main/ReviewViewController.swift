@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import Resolver
 import SDWebImage
+import SwiftUI
 
 class ReviewViewController: UIViewController {
   @Injected private var repository: DataRepository
@@ -33,6 +34,9 @@ class ReviewViewController: UIViewController {
   var userDetailHStack: UIStackView!
   var isLiked: Bool!
   var isBookmarked: Bool!
+  var enableTagsBtn: UIButton!
+  var isShowingTags: Bool = false
+  var tagBtnsDict = [String:UIButton]()
 //  var comments: [Comment]!
   
   init(review: Review, tagObjects: [ReviewTag]) {
@@ -146,6 +150,7 @@ class ReviewViewController: UIViewController {
     postImageView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
     postImageView.layer.cornerRadius = 20
     postImageView.layer.masksToBounds = true
+    postImageView.isUserInteractionEnabled = true
     postImageView.sd_setImage(with: URL(string: review.imageUrl), completed: {
       downloadedImage, error, cacheType, url in
       if let error = error {
@@ -155,6 +160,28 @@ class ReviewViewController: UIViewController {
         print("successfully downloaded: \(String(describing: url))")
       }
     })
+    
+    enableTagsBtn = UIButton()
+    enableTagsBtn.setImage(UIImage(systemName: "pin.circle.fill"), for: .normal)
+    enableTagsBtn.tintColor = .systemPink
+    enableTagsBtn.addTarget(self, action: #selector(clickedTagsBtn), for: .touchUpInside)
+    enableTagsBtn.imageView?.contentMode = .scaleAspectFit
+    enableTagsBtn.imageView?.layer.transform = CATransform3DMakeScale(1.5, 1.5, 1.5)
+    enableTagsBtn.translatesAutoresizingMaskIntoConstraints = false
+    postImageView.addSubview(enableTagsBtn)
+    
+    if tagBtnsDict.isEmpty {
+      tagObjects.forEach { tag in
+        let button = UIButton(type: .custom)
+        postImageView.addSubview(button)
+        button.superview?.bringSubviewToFront(button)
+        button.frame = CGRect(x: tag.x, y: tag.y, width: 32, height: 32)
+        button.setImage(UIImage(named: "logo"), for: .normal)
+        button.addTarget(self, action: #selector(commentTagBtn), for: .touchUpInside)
+        button.isHidden = true
+        tagBtnsDict[tag.id!] = button
+      }
+    }
     
     likeBtn = UIButton()
     // check database if user already liked the review
@@ -176,7 +203,7 @@ class ReviewViewController: UIViewController {
     commentBtn.setImage(UIImage(systemName: "bubble.right"), for: .normal)
     commentBtn.tintColor = .systemPink
     commentBtn.imageView?.contentMode = .scaleAspectFit
-    commentBtn.imageView?.layer.transform = CATransform3DMakeScale(1.6, 1.6, 1.6)
+//    commentBtn.imageView?.layer.transform = CATransform3DMakeScale(1.6, 1.6, 1.6)
     commentBtn.setContentHuggingPriority(.required, for: .horizontal)
     commentBtn.translatesAutoresizingMaskIntoConstraints = false
     commentBtn.addTarget(self, action: #selector(commentBtnPressed), for: .touchUpInside)
@@ -276,6 +303,11 @@ class ReviewViewController: UIViewController {
       postImageView.topAnchor.constraint(equalTo: imageAndActionVStack.topAnchor),
       postImageView.widthAnchor.constraint(equalTo: postImageView.heightAnchor),
       
+      enableTagsBtn.leadingAnchor.constraint(equalTo: postImageView.leadingAnchor, constant: 2),
+      enableTagsBtn.bottomAnchor.constraint(equalTo: postImageView.bottomAnchor, constant: -4),
+      enableTagsBtn.widthAnchor.constraint(equalToConstant: 30),
+      enableTagsBtn.heightAnchor.constraint(equalTo: enableTagsBtn.widthAnchor),
+      
       actionHStack.topAnchor.constraint(equalTo: postImageView.bottomAnchor, constant: 8),
       actionHStack.leadingAnchor.constraint(equalTo: imageAndActionVStack.leadingAnchor),
       actionHStack.trailingAnchor.constraint(equalTo: imageAndActionVStack.trailingAnchor),
@@ -360,6 +392,30 @@ class ReviewViewController: UIViewController {
 //    commentVC.comments = comments
     navigationController?.pushViewController(commentVC, animated: true)
     print("comment button pressed")
+  }
+  
+  @objc func clickedTagsBtn() {
+    print("clickedTagsBtn")
+    isShowingTags.toggle()
+    if isShowingTags {
+      if tagBtnsDict.isEmpty {
+        enableTagsBtn.tintColor = .systemGray
+      } else {
+        for (_,btn) in tagBtnsDict {
+          btn.isHidden = false
+        }
+        enableTagsBtn.tintColor = .systemGray
+      }
+    } else {
+      enableTagsBtn.tintColor = .systemPink
+      for (_,btn) in tagBtnsDict {
+        btn.isHidden = true
+      }
+    }
+  }
+  
+  @objc func commentTagBtn() {
+    print("commentTagBtn")
   }
   
 //  @objc func bookmarkBtnPressed() {

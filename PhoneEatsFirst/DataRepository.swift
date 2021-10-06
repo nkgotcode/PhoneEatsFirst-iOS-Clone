@@ -22,6 +22,7 @@ final class DataRepository: ObservableObject {
   @Published var businesses: [Business] = []
   @Published var reviews: [Review] = []
   @Published var comments: [Comment] = []
+  @Published var reviewTags: [ReviewTag] = []
 
   @Published private var firebaseUser: FirebaseAuth.User? = nil
   @Published var user: User? = nil
@@ -79,6 +80,11 @@ final class DataRepository: ObservableObject {
     firestore.collection(commentPath).publisher(as: Comment.self)
       .replaceError(with: [])
       .assign(to: \.comments, on: self)
+      .store(in: &cancellables)
+    
+    firestore.collection(reviewTagPath).publisher(as: ReviewTag.self)
+      .replaceError(with: [])
+      .assign(to: \.reviewTags, on: self)
       .store(in: &cancellables)
   }
 
@@ -139,40 +145,43 @@ final class DataRepository: ObservableObject {
   }
   
   func getTagObjects(reviewID: String) -> [ReviewTag] {
-    var tagObjects : [ReviewTag] = []
-    firestore.collection(reviewPath).document(reviewID).collection(reviewTagPath).getDocuments(completion: {
-      querrySnapshot, err in
-      if let err = err {
-        print("Error getting documents: \(err)")
-      } else {
-        // for loop getting each review tag
-        for doc in querrySnapshot!.documents {
-          
-          let data = doc.data()
-          var x: Double = 0.0
-          var y: Double = 0.0
-          var description: String?
-          // getting fields of review document
-          for d in data {
-            switch(d.key) {
-            case "x": x = d.value as! Double
-            case "y": y = d.value as! Double
-            case "description": description = d.value as? String
-            default: return
-            }
-            if description == nil {
-              let tag = ReviewTag(id: doc.documentID, x: x, y: y, description: "")
-              tagObjects.append(tag)
-            } else {
-              // create tag object and append to return array
-              let tag = ReviewTag(id: doc.documentID, x: x, y: y, description: description!)
-              tagObjects.append(tag)
-            }
-          }
-        }
-      }
-    })
-    return tagObjects
+//    var tagObjects : [ReviewTag] = []
+//    firestore.collection(reviewPath).document(reviewID).collection(reviewTagPath).getDocuments(completion: {
+//      querrySnapshot, err in
+//      if let err = err {
+//        print("Error getting documents: \(err)")
+//      } else {
+//        // for loop getting each review tag
+//        for doc in querrySnapshot!.documents {
+//
+//          let data = doc.data()
+//          var x: Double = 0.0
+//          var y: Double = 0.0
+//          var reviewID: String = ""
+//          var description: String?
+//          // getting fields of review document
+//          for d in data {
+//            switch(d.key) {
+//            case "x": x = d.value as! Double
+//            case "y": y = d.value as! Double
+//            case "reviewID": reviewID = d.value as! String
+//            case "description": description = d.value as? String
+//            default: return
+//            }
+//            if description == nil {
+//              let tag = ReviewTag(id: doc.documentID, reviewID: reviewID, x: x, y: y, description: "")
+//              tagObjects.append(tag)
+//            } else {
+//              // create tag object and append to return array
+//              let tag = ReviewTag(id: doc.documentID, reviewID: reviewID, x: x, y: y, description: description!)
+//              tagObjects.append(tag)
+//            }
+//          }
+//        }
+//      }
+//    })
+//    return tagObjects
+    return reviewTags.filter({ $0.reviewID == reviewID })
   }
 
   func login(email: String, password: String, completion: ((Bool) -> Void)? = nil) {
@@ -266,10 +275,14 @@ final class DataRepository: ObservableObject {
     
       // uploading tag objects for the image to firestore
       if tagObjects.count <= 0 {
-        _ = self.firestore.collection(self.reviewPath).document(postId).collection(self.reviewTagPath)
+//        _ = self.firestore.collection(self.reviewPath).document(postId).collection(self.reviewTagPath)
+        _ = self.firestore.collection(self.reviewTagPath)
       } else {
         for tag in tagObjects {
-          _ = self.firestore.collection(self.reviewPath).document(postId).collection(self.reviewTagPath).document(tag.id!).setData(from: tag)
+//          _ = self.firestore.collection(self.reviewPath).document(postId).collection(self.reviewTagPath).document(tag.id!).setData(from: tag)
+          var tmp = tag
+          tmp.reviewID = postId
+          _ = self.firestore.collection(self.reviewTagPath).document(tag.id!).setData(from: tmp)
         }
       }
       // populate local version
